@@ -23,14 +23,16 @@ if not st.session_state["authenticated"]:
             st.error("Mot de passe incorrect.")
     st.stop()
 
-# --- WHERE TO LOOK FOR ADDED DATA & SOURCES CONFIGURATION ---
+# --- CONFIGURATION DES DÉPARTEMENTS ET SOURCES DE DONNÉES ---
 DATA_SOURCES = {
-    "weekly_reports": "juc_reports",  # Table Supabase principale
+    "weekly_reports": "juc_reports",
     "departments_master": [
-        "Monitoring & Evaluation (M&E)",
-        "Administration & Finance",
-        "Programs & Project Management",
-        "Youth Empowerment"
+        "Administration",
+        "Finance",
+        "Program management project office",
+        "Front desk",
+        "M&E",
+        "Communication office"
     ]
 }
 
@@ -58,7 +60,7 @@ def save_to_supabase(df, table_name):
         st.error(f"Détail de l'erreur Supabase : {e}")
         return False
 
-# Fonction pour charger et filtrer les données par département (comme avant)
+# Fonction pour charger et filtrer les données par département
 def load_and_filter_data(table_name):
     if engine is None:
         return pd.DataFrame()
@@ -66,7 +68,7 @@ def load_and_filter_data(table_name):
         query = f"SELECT * FROM {table_name}"
         df = pd.read_sql(query, con=engine)
         
-        # Application du filtre des départements comme avant
+        # Application du filtre des départements officiels
         active_departments = DATA_SOURCES["departments_master"]
         if "Department" in df.columns:
             df_filtered = df[df["Department"].isin(active_departments)]
@@ -74,7 +76,6 @@ def load_and_filter_data(table_name):
             df_filtered = df
         return df_filtered
     except Exception as e:
-        # Si la table est vide ou n'a pas encore de données
         return pd.DataFrame()
 
 # Interface principale du portail
@@ -89,7 +90,7 @@ if menu == "Submit Weekly Report":
         date_val = str(st.date_input("Date"))
         staff_name = st.text_input("Staff Name")
         
-        # Sélection du département avec la liste officielle
+        # Menu déroulant mis à jour avec vos départements exacts
         department = st.selectbox("Department", DATA_SOURCES["departments_master"])
         
         activities = st.text_area("Activities")
@@ -111,7 +112,7 @@ if menu == "Submit Weekly Report":
 
 elif menu == "View Reports & Analytics":
     st.header("🔍 Où regarder les données ajoutées & Historique")
-    st.info("Les données enregistrées ci-dessous proviennent directement de la base de données Supabase (Table : `juc_reports`), filtrées par les départements autorisés.")
+    st.info("Les données enregistrées ci-dessous proviennent de la base de données Supabase (Table : `juc_reports`) et sont filtrées selon les départements officiels.")
     
     df_reports = load_and_filter_data("juc_reports")
     if not df_reports.empty:
