@@ -23,6 +23,17 @@ if not st.session_state["authenticated"]:
             st.error("Mot de passe incorrect.")
     st.stop()
 
+# --- WHERE TO LOOK FOR ADDED DATA & SOURCES CONFIGURATION ---
+DATA_SOURCES = {
+    "weekly_reports": "juc_reports",  # Table Supabase principale
+    "departments_master": [
+        "Monitoring & Evaluation (M&E)",
+        "Administration & Finance",
+        "Programs & Project Management",
+        "Youth Empowerment"
+    ]
+}
+
 # Initialisation de la connexion SQLAlchemy avec Supabase
 @st.cache_resource
 def init_connection():
@@ -47,18 +58,40 @@ def save_to_supabase(df, table_name):
         st.error(f"Détail de l'erreur Supabase : {e}")
         return False
 
+# Fonction pour charger et filtrer les données par département (comme avant)
+def load_and_filter_data(table_name):
+    if engine is None:
+        return pd.DataFrame()
+    try:
+        query = f"SELECT * FROM {table_name}"
+        df = pd.read_sql(query, con=engine)
+        
+        # Application du filtre des départements comme avant
+        active_departments = DATA_SOURCES["departments_master"]
+        if "Department" in df.columns:
+            df_filtered = df[df["Department"].isin(active_departments)]
+        else:
+            df_filtered = df
+        return df_filtered
+    except Exception as e:
+        # Si la table est vide ou n'a pas encore de données
+        return pd.DataFrame()
+
 # Interface principale du portail
 st.title("📊 JUC Staff & M&E Portal")
 st.sidebar.success("Connecté avec succès")
 
-menu = st.sidebar.selectbox("Navigation", ["Submit Weekly Report", "Pillar 1", "Pillar 2", "Pillar 3", "Pillar 4"])
+menu = st.sidebar.selectbox("Navigation", ["Submit Weekly Report", "View Reports & Analytics", "Pillar 1", "Pillar 2", "Pillar 3", "Pillar 4"])
 
 if menu == "Submit Weekly Report":
     st.header("Rapport Hebdomadaire")
     with st.form("report_form"):
         date_val = str(st.date_input("Date"))
         staff_name = st.text_input("Staff Name")
-        department = st.text_input("Department")
+        
+        # Sélection du département avec la liste officielle
+        department = st.selectbox("Department", DATA_SOURCES["departments_master"])
+        
         activities = st.text_area("Activities")
         challenges = st.text_area("Challenges")
         projections = st.text_area("Projections")
@@ -75,6 +108,16 @@ if menu == "Submit Weekly Report":
             }])
             if save_to_supabase(df_new, "juc_reports"):
                 st.success("✅ Saved to Database!")
+
+elif menu == "View Reports & Analytics":
+    st.header("🔍 Où regarder les données ajoutées & Historique")
+    st.info("Les données enregistrées ci-dessous proviennent directement de la base de données Supabase (Table : `juc_reports`), filtrées par les départements autorisés.")
+    
+    df_reports = load_and_filter_data("juc_reports")
+    if not df_reports.empty:
+        st.dataframe(df_reports, use_container_width=True)
+    else:
+        st.warning("Aucune donnée enregistrée pour le moment ou table vide.")
 
 elif menu in ["Pillar 1", "Pillar 2", "Pillar 3", "Pillar 4"]:
     pillar_num = menu.split(" ")[1]
