@@ -5,12 +5,17 @@ from sqlalchemy import create_engine
 # --- CONFIGURATION DE LA PAGE ---
 st.set_page_config(page_title="JUC Staff & M&E Portal", page_icon="📊", layout="wide")
 
-# --- CONNEXION À LA BASE DE DONNÉES (SUPABASE) ---
+# --- CONNEXION À LA BASE DE DONNÉES (SUPABASE AVEC SSL) ---
 @st.cache_resource
 def init_connection():
     try:
-        # Récupère l'URL depuis les secrets configurés sur Streamlit Cloud
         db_url = st.secrets["DATABASE_URL"]
+        # Ajoute automatiquement le paramètre SSL requis par Supabase en production cloud
+        if "?" not in db_url:
+            db_url += "?sslmode=require"
+        elif "sslmode" not in db_url:
+            db_url += "&sslmode=require"
+            
         engine = create_engine(db_url)
         return engine
     except Exception as e:
@@ -22,18 +27,20 @@ engine = init_connection()
 # --- INITIALISATION DES TABLES DANS POSTGRESQL ---
 def init_tables():
     if engine:
-        with engine.begin() as conn:
-            # Création d'une table pour les rapports hebdo si elle n'existe pas
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS rapports_hebdo (
-                    staff_name TEXT,
-                    department TEXT,
-                    report_date TEXT,
-                    activities TEXT,
-                    challenges TEXT,
-                    projections TEXT
-                )
-            """)
+        try:
+            with engine.begin() as conn:
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS rapports_hebdo (
+                        staff_name TEXT,
+                        department TEXT,
+                        report_date TEXT,
+                        activities TEXT,
+                        challenges TEXT,
+                        projections TEXT
+                    )
+                """)
+        except Exception as e:
+            st.warning(f"Note sur l'initialisation de la table : {e}")
 
 init_tables()
 
