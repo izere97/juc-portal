@@ -33,7 +33,7 @@ if "bg_base64" not in st.session_state or not st.session_state.bg_base64:
     else:
         st.session_state.bg_base64 = ""
 
-# --- CRÉATION & MISE À JOUR AUTOMATIQUE DE LA TABLE ---
+# --- CRÉATION & MISE À JOUR AUTOMATIQUE DE LA TABLE (AVEC COLONNES DÉDIÉES) ---
 if engine:
     try:
         with engine.connect() as conn:
@@ -46,6 +46,9 @@ if engine:
                     report_type TEXT,
                     category TEXT,
                     sub_category TEXT,
+                    completed_activities TEXT,
+                    pending_issues TEXT,
+                    challenges TEXT,
                     details TEXT
                 );
             """))
@@ -83,7 +86,6 @@ st.markdown(f"""
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         border: 1px solid rgba(226, 232, 240, 1);
     }}
-    /* Style pour les bulles (cartes) */
     .bubble-card {{
         background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
         border: 2px solid #cbd5e1;
@@ -141,17 +143,25 @@ if menu == t["weekly"]:
             if not staff_name or not completed_activities:
                 st.error("Please fill in your name and completed activities.")
             elif engine:
-                combined_details = f"Accomplished: {completed_activities} || Pending/Next week: {pending_issues} || Challenges: {challenges}"
                 with engine.connect() as conn:
                     conn.execute(text("""
-                        INSERT INTO juc_reports (submission_date, staff_name, report_type, category, sub_category, details) 
-                        VALUES (:sub_date, :n, 'Weekly', :c, :sub, :d)
+                        INSERT INTO juc_reports (
+                            submission_date, staff_name, report_type, category, sub_category, 
+                            completed_activities, pending_issues, challenges, details
+                        ) 
+                        VALUES (
+                            :sub_date, :n, 'Weekly', :c, :sub, 
+                            :comp, :pend, :chal, :d
+                        )
                     """), {
                         "sub_date": submission_date,
                         "n": staff_name, 
                         "c": dept, 
                         "sub": "Weekly Memo Report",
-                        "d": combined_details
+                        "comp": completed_activities,
+                        "pend": pending_issues,
+                        "chal": challenges,
+                        "d": f"Accomplished: {completed_activities} || Pending/Next week: {pending_issues} || Challenges: {challenges}"
                     })
                     conn.commit()
                 st.success("Weekly report submitted successfully!")
@@ -184,8 +194,16 @@ elif menu == t["strat"]:
             if st.form_submit_button(t["submit"]):
                 if engine:
                     with engine.connect() as conn:
-                        conn.execute(text("INSERT INTO juc_reports (submission_date, staff_name, report_type, category, sub_category, details) VALUES (:sub_date, :n, 'Strategic', :c, :sub, :d)"),
-                                     {"sub_date": submission_date, "n": staff_name, "c": chosen_pillar, "sub": selected_activity, "d": f"Metrics: {quantitative_metrics} | Beneficiaries: {beneficiaries} || {details}"})
+                        conn.execute(text("""
+                            INSERT INTO juc_reports (
+                                submission_date, staff_name, report_type, category, sub_category, 
+                                completed_activities, challenges, details
+                            ) VALUES (:sub_date, :n, 'Strategic', :c, :sub, :comp, :chal, :d)
+                        """), {
+                            "sub_date": submission_date, "n": staff_name, "c": chosen_pillar, "sub": selected_activity,
+                            "comp": details, "chal": challenges,
+                            "d": f"Metrics: {quantitative_metrics} | Beneficiaries: {beneficiaries} || {details}"
+                        })
                         conn.commit()
                     st.success("Submitted successfully!")
     elif chosen_pillar.startswith("Pillar 2"):
@@ -199,8 +217,16 @@ elif menu == t["strat"]:
             if st.form_submit_button(t["submit"]):
                 if engine:
                     with engine.connect() as conn:
-                        conn.execute(text("INSERT INTO juc_reports (submission_date, staff_name, report_type, category, sub_category, details) VALUES (:sub_date, :n, 'Strategic', :c, :sub, :d)"),
-                                     {"sub_date": submission_date, "n": staff_name, "c": chosen_pillar, "sub": selected_activity, "d": f"Metrics: {quantitative_metrics} | Beneficiaries: {beneficiaries} || {details}"})
+                        conn.execute(text("""
+                            INSERT INTO juc_reports (
+                                submission_date, staff_name, report_type, category, sub_category, 
+                                completed_activities, details
+                            ) VALUES (:sub_date, :n, 'Strategic', :c, :sub, :comp, :d)
+                        """), {
+                            "sub_date": submission_date, "n": staff_name, "c": chosen_pillar, "sub": selected_activity,
+                            "comp": details,
+                            "d": f"Metrics: {quantitative_metrics} | Beneficiaries: {beneficiaries} || {details}"
+                        })
                         conn.commit()
                     st.success("Submitted successfully!")
     elif chosen_pillar.startswith("Pillar 3"):
@@ -214,8 +240,16 @@ elif menu == t["strat"]:
             if st.form_submit_button(t["submit"]):
                 if engine:
                     with engine.connect() as conn:
-                        conn.execute(text("INSERT INTO juc_reports (submission_date, staff_name, report_type, category, sub_category, details) VALUES (:sub_date, :n, 'Strategic', :c, :sub, :d)"),
-                                     {"sub_date": submission_date, "n": staff_name, "c": chosen_pillar, "sub": selected_activity, "d": f"Metrics: {quantitative_metrics} | Beneficiaries: {beneficiaries} || {details}"})
+                        conn.execute(text("""
+                            INSERT INTO juc_reports (
+                                submission_date, staff_name, report_type, category, sub_category, 
+                                completed_activities, details
+                            ) VALUES (:sub_date, :n, 'Strategic', :c, :sub, :comp, :d)
+                        """), {
+                            "sub_date": submission_date, "n": staff_name, "c": chosen_pillar, "sub": selected_activity,
+                            "comp": details,
+                            "d": f"Metrics: {quantitative_metrics} | Beneficiaries: {beneficiaries} || {details}"
+                        })
                         conn.commit()
                     st.success("Submitted successfully!")
     elif chosen_pillar.startswith("Pillar 4"):
@@ -229,8 +263,16 @@ elif menu == t["strat"]:
             if st.form_submit_button(t["submit"]):
                 if engine:
                     with engine.connect() as conn:
-                        conn.execute(text("INSERT INTO juc_reports (submission_date, staff_name, report_type, category, sub_category, details) VALUES (:sub_date, :n, 'Strategic', :c, :sub, :d)"),
-                                     {"sub_date": submission_date, "n": staff_name, "c": chosen_pillar, "sub": selected_activity, "d": f"Metrics: {quantitative_metrics} | Beneficiaries: {beneficiaries} || {details}"})
+                        conn.execute(text("""
+                            INSERT INTO juc_reports (
+                                submission_date, staff_name, report_type, category, sub_category, 
+                                completed_activities, details
+                            ) VALUES (:sub_date, :n, 'Strategic', :c, :sub, :comp, :d)
+                        """), {
+                            "sub_date": submission_date, "n": staff_name, "c": chosen_pillar, "sub": selected_activity,
+                            "comp": details,
+                            "d": f"Metrics: {quantitative_metrics} | Beneficiaries: {beneficiaries} || {details}"
+                        })
                         conn.commit()
                     st.success("Submitted successfully!")
 
@@ -243,7 +285,7 @@ elif menu == t["dash"]:
         try:
             df = pd.read_sql("SELECT * FROM juc_reports", engine)
             
-            # --- SOMMET : BULLÉ ADMIN ---
+            # --- SOMMET : BULLE ADMIN ---
             st.markdown("""
                 <div class="bubble-admin">
                     <h3>🏛️ Administration & Direction</h3>
@@ -251,7 +293,7 @@ elif menu == t["dash"]:
                 </div>
             """, unsafe_allow_html=True)
             
-            # --- NIVEAU INTERMÉDIAIRE : LES 3 COLONNES (DEPARTEMENTS / PILIERS) ---
+            # --- NIVEAU INTERMÉDIAIRE : LES 3 COLONNES ---
             col_left, col_mid, col_right = st.columns(3)
             
             with col_left:
@@ -300,7 +342,7 @@ elif menu == t["dash"]:
                     mime="text/csv",
                     use_container_width=True
                 )
-                st.markdown("### 📋 Détail complet des données")
+                st.markdown("### 📋 Détail complet des données (avec colonnes séparées)")
                 st.dataframe(df, use_container_width=True)
             else:
                 st.info("Aucune donnée enregistrée pour le moment.")
@@ -313,7 +355,7 @@ elif menu == t["admin"]:
     st.header(t["admin"])
     if engine:
         try:
-            df = pd.read_sql("SELECT id, submission_date, staff_name, report_type, category, sub_category FROM juc_reports ORDER BY submission_date DESC", engine)
+            df = pd.read_sql("SELECT id, submission_date, staff_name, report_type, category, completed_activities, pending_issues, challenges FROM juc_reports ORDER BY submission_date DESC", engine)
             if df.empty:
                 st.info("The database is currently empty.")
             else:
