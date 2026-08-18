@@ -16,7 +16,7 @@ def get_translations():
         "Kinyarwanda": {"title": "Urubuga JUC", "weekly": "Raporo y'icyumweru", "strat": "Raporo y'Inkingi z'Ingamba", "dept": "Ishami", "submit": "Ohereza", "lang": "Ururimi", "pillar": "Inkingi y'Ingamba", "dash": "📊 Imbonerahamwe", "admin": "⚙️ Ubuyobozi"},
         "Dutch": {"title": "JUC Portaal", "weekly": "Wekelijks Rapport", "strat": "Strategisch Pijler Rapport", "dept": "Afdeling", "submit": "Indienen", "lang": "Taal", "pillar": "Strategische Pijler", "dash": "📊 Dashboard", "admin": "⚙️ Beheer"},
         "Italian": {"title": "Portale JUC", "weekly": "Rapporto Settimanale", "strat": "Rapporto Pilastro Strategico", "dept": "Dipartimento", "submit": "Invia", "lang": "Lingua", "pillar": "Pilastro Strategico", "dash": "📊 Dashboard", "admin": "⚙️ Admin"},
-        "Spanish": {"title": "Portal JUC", "weekly": "Informe Semanal", "strat": "Informe de Pilar Estratégico", "dept": "Departamento", "submit": "Enviar", "lang": "Idioma", "pillar": "Pilar Estratégico", "dash": "📊 Panel", "admin": "⚙️ Admin"}
+        "Spanish": {"title": "Portal JUC", "weekly": "Informe Semanal", "strat": "Informe de Pilar Estratégico", "dept": "Departamento", "submit": "Enviar", "lang": "Idioma", "pillar": "Pilar Estratégico", "dash": "📊 Panel", "admin": "⚙️ Panel"}
     }
 
 # --- INITIALISATION ---
@@ -25,9 +25,10 @@ trans = get_translations()
 engine = create_engine(st.secrets["DATABASE_URL"]) if "DATABASE_URL" in st.secrets else None
 
 # --- CHARGEMENT AUTOMATIQUE DE L'IMAGE DE FOND ---
-default_bg_name = "generated_image-width=4096_height=3058.jpg"
+# Utilisez un nom simple sans caractères spéciaux comme 'background.jpg'
+default_bg_name = "background.jpg"
 
-if "bg_base64" not in st.session_state:
+if "bg_base64" not in st.session_state or not st.session_state.bg_base64:
     if os.path.exists(default_bg_name):
         with open(default_bg_name, "rb") as image_file:
             st.session_state.bg_base64 = base64.b64encode(image_file.read()).decode()
@@ -64,7 +65,6 @@ bg_css = f"url('data:image/jpeg;base64,{st.session_state.bg_base64}')" if st.ses
 
 st.markdown(f"""
     <style>
-    /* Fond de toute la fenêtre du navigateur */
     .stApp {{
         background-image: {bg_css} !important;
         background-size: cover !important;
@@ -73,7 +73,6 @@ st.markdown(f"""
         background-attachment: fixed !important;
     }}
     
-    /* Conteneur principal semi-transparent pour la lisibilité */
     .main .block-container {{
         background: rgba(255, 255, 255, 0.93);
         padding: 2.5rem;
@@ -82,7 +81,6 @@ st.markdown(f"""
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     }}
     
-    /* Formulaires très lisibles */
     div[data-testid="stForm"] {{
         background: rgba(255, 255, 255, 0.98) !important;
         padding: 25px;
@@ -91,14 +89,13 @@ st.markdown(f"""
         border: 1px solid rgba(226, 232, 240, 1);
     }}
 
-    /* Textes en noir/sombre pour un contraste parfait */
     h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown {{
         color: #0f172a !important;
     }}
     </style>
 """, unsafe_allow_html=True)
 
-# --- SÉCURITÉ MOT DE PASSE (ADMIN / ACCÈS GLOBAL) ---
+# --- SÉCURITÉ MOT DE PASSE ---
 password_input = st.sidebar.text_input("Password", type="password")
 if password_input != "JUC2026Secure":
     st.warning("Access Restricted. Please enter the secure password in the sidebar.")
@@ -163,7 +160,6 @@ elif menu == t["strat"]:
 
     st.markdown("---")
 
-    # PILIER 1
     if chosen_pillar == "Pillar 1: Research, Policy Advocacy and Civic Engagement":
         st.subheader("Pillar 1: Research, Policy Advocacy and Civic Engagement")
         with st.form("form_pillar_1"):
@@ -222,7 +218,6 @@ elif menu == t["strat"]:
                         conn.commit()
                     st.success("Pillar 1 report submitted successfully!")
 
-    # PILIER 2
     elif chosen_pillar == "Pillar 2: Women & Youth Empowerment through Social Innovation and Entrepreneurship":
         st.subheader("Pillar 2: Women & Youth Empowerment through Social Innovation and Entrepreneurship")
         with st.form("form_pillar_2"):
@@ -273,7 +268,6 @@ elif menu == t["strat"]:
                         conn.commit()
                     st.success("Pillar 2 report submitted successfully!")
 
-    # PILIER 3
     elif chosen_pillar == "Pillar 3: Integral Ecology and Community Resilience":
         st.subheader("Pillar 3: Integral Ecology and Community Resilience")
         with st.form("form_pillar_3"):
@@ -326,7 +320,6 @@ elif menu == t["strat"]:
                         conn.commit()
                     st.success("Pillar 3 report submitted successfully!")
 
-    # PILIER 4
     elif chosen_pillar == "Pillar 4: Institutional Capacity Strengthening and Sustainability":
         st.subheader("Pillar 4: Institutional Capacity Strengthening and Sustainability")
         with st.form("form_pillar_4"):
