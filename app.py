@@ -109,37 +109,49 @@ if menu == t["weekly"]:
                     conn.commit()
                 st.success("Weekly report submitted successfully!")
 
-# --- 2. RAPPORT PAR PILIER STRATÉGIQUE (Activités 100% distinctes et spécifiques par pilier) ---
+# --- 2. RAPPORT PAR PILIER STRATÉGIQUE (Activités exhaustives par le Plan Stratégique) ---
 elif menu == t["strat"]:
     st.header(t["strat"])
-    st.markdown("Rapports détaillés alignés sur les activités spécifiques de chaque pilier du Plan Stratégique.")
+    st.markdown("Rapports détaillés alignés sur les objectifs et activités spécifiques de chaque pilier du Plan Stratégique.")
 
-    # Dictionnaire strictement séparé : chaque pilier a ses propres activités uniques
+    # Dictionnaire détaillé reprenant exactement toutes les sous-activités du plan stratégique
     pillars_data = {
         "Pillar 1: Research, Policy Advocacy and Civic Engagement": [
-            "Basic Needs Basket Updates",
-            "Policy Briefs & Research Reports Formulation",
-            "Social Justice Conferences & Public Debates",
-            "Civic Education & Life-skills training (AHAPPY / Drug abuse prevention)",
-            "Pluralistic Governance Forums Implementation"
+            "Obj 1.1 - Quarterly publication of the Basic Needs Basket",
+            "Obj 1.1 - Policy briefs, research reports, and semestrial journal",
+            "Obj 1.1 - Hosting annual social justice conferences",
+            "Obj 1.1 - JUC Policy Forum (public op-eds, policy roundtables, media briefs)",
+            "Obj 1.2 - Life-skills training on drug abuse and sexual morality",
+            "Obj 1.2 - Leadership training programs for youth",
+            "Obj 1.2 - Public dialogues on governance, ethics, and citizenship",
+            "Obj 1.2 - Peace and constitutional literacy programs",
+            "Obj 1.2 - Annual Pluralistic Governance Forums",
+            "Obj 1.3 - African Jesuit AIDS Network HIV/AIDS Youth Prevention Program (AHAPPY)",
+            "Obj 1.3 - Value-based education and sexual/reproductive health awareness",
+            "Obj 1.3 - Drug abuse prevention campaigns"
         ],
         "Pillar 2: Women & Youth Empowerment through Social Innovation and Entrepreneurship": [
-            "Social Innovation Incubation Bootcamps",
-            "Financial Literacy Training Workshops",
-            "Women's Empowerment Cooperatives Mentorship",
-            "Gender and Youth Agency Index (GYAI) Assessment"
+            "Obj 2.1 - Social innovation incubation bootcamps",
+            "Obj 2.1 - Financial literacy training workshops",
+            "Obj 2.1 - Targeted women's empowerment cooperatives",
+            "Obj 2.1 - Gender and Youth Agency Index (GYAI) Assessment & Monitoring"
         ],
         "Pillar 3: Integral Ecology and Community Resilience": [
-            "Climate Change Awareness Campaigns",
-            "Laudato Si' Formation & Ecological Retreats",
-            "Sustainable Agriculture & Climate-Smart Farming Training",
-            "Kitchen Gardens & Community Nutrition Programs"
+            "Obj 3.1 - Climate change awareness campaigns",
+            "Obj 3.1 - Laudato Si’ formation programs",
+            "Obj 3.1 - Ecological retreats and reflections",
+            "Obj 3.2 - Sustainable agriculture training",
+            "Obj 3.2 - Kitchen gardens and nutrition programs",
+            "Obj 3.2 - Climate-smart farming projects"
         ],
         "Pillar 4: Institutional Capacity Strengthening and Sustainability": [
-            "Staff Development & Performance Management Reviews",
-            "Financial Resource Mobilization & CSR Partnerships",
-            "Governance & M&E Systems Strengthening",
-            "Internal Income-Generating Activities Development"
+            "Obj 4.1 - Staff capacity-building and development",
+            "Obj 4.1 - Performance management implementation",
+            "Obj 4.1 - Establishing distinct departments with demarcated duties",
+            "Obj 4.1 - Consolidating monitoring and advisory boards",
+            "Obj 4.2 - Building corporate partnerships",
+            "Obj 4.2 - Designing diversified fundraising plans",
+            "Obj 4.2 - Establishing internal income-generating projects"
         ]
     }
 
@@ -151,12 +163,11 @@ elif menu == t["strat"]:
             submission_date = st.date_input("Submission Date / Date de soumission", value=date.today())
             
         selected_pillar = st.selectbox(t["pillar"], list(pillars_data.keys()))
-        # Les activités affichées changent dynamiquement selon le pilier sélectionné
         selected_activity = st.selectbox("Core Activity / Activité clé", pillars_data[selected_pillar])
         
         col3, col4 = st.columns(2)
         with col3:
-            quantitative_metrics = st.text_input("Quantitative Metrics (e.g., number of participants, reports produced) / Indicateurs chiffrés")
+            quantitative_metrics = st.text_input("Quantitative Metrics (e.g., participants count, reports count) / Indicateurs chiffrés")
         with col4:
             beneficiaries = st.text_input("Target Group / Beneficiaries / Groupe cible")
             
