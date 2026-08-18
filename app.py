@@ -11,12 +11,12 @@ st.set_page_config(page_title="JUC Portal", layout="wide")
 # --- TRADUCTIONS ---
 def get_translations():
     return {
-        "English": {"title": "JUC Portal", "weekly": "Weekly Report", "strat": "Strategic Pillar Report", "dept": "Department", "submit": "Submit", "lang": "Language", "pillar": "Strategic Pillar", "dash": "📊 Unified Analytics & Reports", "admin": "⚙️ Admin"},
-        "Français": {"title": "Portail JUC", "weekly": "Rapport Hebdomadaire", "strat": "Rapport par Pilier Stratégique", "dept": "Département", "submit": "Soumettre", "lang": "Langue", "pillar": "Pilier Stratégique", "dash": "📊 Analyses & Rapports Unifiés", "admin": "⚙️ Admin"},
-        "Kinyarwanda": {"title": "Urubuga JUC", "weekly": "Raporo y'icyumweru", "strat": "Raporo y'Inkingi z'Ingamba", "dept": "Ishami", "submit": "Ohereza", "lang": "Ururimi", "pillar": "Inkingi y'Ingamba", "dash": "📊 Isesengura Rusange", "admin": "⚙️ Ubuyobozi"},
-        "Dutch": {"title": "JUC Portaal", "weekly": "Wekelijks Rapport", "strat": "Strategisch Pijler Rapport", "dept": "Afdeling", "submit": "Indienen", "lang": "Taal", "pillar": "Strategische Pijler", "dash": "📊 Gecombineerd Dashboard", "admin": "⚙️ Beheer"},
-        "Italian": {"title": "Portale JUC", "weekly": "Rapporto Settimanale", "strat": "Rapporto Pilastro Strategico", "dept": "Dipartimento", "submit": "Invia", "lang": "Lingua", "pillar": "Pilastro Strategico", "dash": "📊 Dashboard Unificata", "admin": "⚙️ Admin"},
-        "Spanish": {"title": "Portal JUC", "weekly": "Informe Semanal", "strat": "Informe de Pilar Estratégico", "dept": "Departamento", "submit": "Enviar", "lang": "Idioma", "pillar": "Pilar Estratégico", "dash": "📊 Panel Unificado", "admin": "⚙️ Panel"}
+        "English": {"title": "JUC Portal", "weekly": "Weekly Report", "strat": "Strategic Pillar Report", "dept": "Department", "submit": "Submit", "lang": "Language", "pillar": "Strategic Pillar", "dash": "📊 Bubble Dashboard", "admin": "⚙️ Admin"},
+        "Français": {"title": "Portail JUC", "weekly": "Rapport Hebdomadaire", "strat": "Rapport par Pilier Stratégique", "dept": "Département", "submit": "Soumettre", "lang": "Langue", "pillar": "Pilier Stratégique", "dash": "📊 Tableau de Bord en Bulles", "admin": "⚙️ Admin"},
+        "Kinyarwanda": {"title": "Urubuga JUC", "weekly": "Raporo y'icyumweru", "strat": "Raporo y'Inkingi z'Ingamba", "dept": "Ishami", "submit": "Ohereza", "lang": "Ururimi", "pillar": "Inkingi y'Ingamba", "dash": "📊 Imbonerahamwe y'Utugari", "admin": "⚙️ Ubuyobozi"},
+        "Dutch": {"title": "JUC Portaal", "weekly": "Wekelijks Rapport", "strat": "Strategisch Pijler Rapport", "dept": "Afdeling", "submit": "Indienen", "lang": "Taal", "pillar": "Strategische Pijler", "dash": "📊 Bellen Dashboard", "admin": "⚙️ Beheer"},
+        "Italian": {"title": "Portale JUC", "weekly": "Rapporto Settimanale", "strat": "Rapporto Pilastro Strategico", "dept": "Dipartimento", "submit": "Invia", "lang": "Lingua", "pillar": "Pilastro Strategico", "dash": "📊 Dashboard a Bolle", "admin": "⚙️ Admin"},
+        "Spanish": {"title": "Portal JUC", "weekly": "Informe Semanal", "strat": "Informe de Pilar Estratégico", "dept": "Departamento", "submit": "Enviar", "lang": "Idioma", "pillar": "Pilar Estratégico", "dash": "📊 Panel de Burbujas", "admin": "⚙️ Panel"}
     }
 
 # --- INITIALISATION ---
@@ -77,11 +77,30 @@ st.markdown(f"""
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     }}
     div[data-testid="stForm"] {{
-        background: rgba(255, 255, 255, 0.98) !important;
+        background: rgba(255, 255, 258, 0.98) !important;
         padding: 25px;
         border-radius: 12px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         border: 1px solid rgba(226, 232, 240, 1);
+    }}
+    /* Style pour les bulles (cartes) */
+    .bubble-card {{
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border: 2px solid #cbd5e1;
+        border-radius: 20px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
+    }}
+    .bubble-admin {{
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        border: 2px solid #3b82f6;
+        border-radius: 25px;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.15);
+        margin-bottom: 25px;
     }}
     h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown {{
         color: #0f172a !important;
@@ -215,70 +234,79 @@ elif menu == t["strat"]:
                         conn.commit()
                     st.success("Submitted successfully!")
 
-# --- 3. DASHBOARD & ANALYSES UNIFIÉES (AVEC GRAPHIQUES SÉPARÉS DÉPARTEMENTS & PILIERS) ---
+# --- 3. DASHBOARD SOUS FORME DE BULLES (ORGANIGRAMME / RÉSEAU) ---
 elif menu == t["dash"]:
     st.header(t["dash"])
-    st.markdown("Vue d'ensemble centralisée : visualisez séparément l'activité des **Départements** et des **Piliers Stratégiques** sur une seule page, prête à être téléchargée.")
+    st.markdown("Vue d'ensemble sous forme de bulles interactives reproduisant la structure de vos départements et piliers.")
     
     if engine:
         try:
-            df = pd.read_sql("SELECT * FROM juc_reports ORDER BY submission_date DESC, created_at DESC", engine)
-            if df.empty:
-                st.info("Aucun rapport enregistré pour le moment.")
-            else:
-                # Métriques Globales
-                col1, col2, col3 = st.columns(3)
-                col1.metric("Total Global des Rapports", len(df))
-                col2.metric("Collaborateurs Actifs", df['staff_name'].nunique() if 'staff_name' in df.columns else 0)
-                col3.metric("Rapports par Piliers / Départements", len(df.dropna(subset=['category'])))
-                
-                st.markdown("---")
-                
-                # --- SECTION 1 : RAPPORT HEBDOMADAIRE PAR DÉPARTEMENT ---
-                st.subheader("🏢 Résumé des Départements (Rapports Hebdomadaires)")
-                df_weekly = df[df['report_type'] == 'Weekly']
-                
-                if df_weekly.empty:
-                    st.info("Aucun rapport hebdomadaire soumis pour l'instant.")
-                else:
-                    dept_counts = df_weekly['category'].value_counts().reset_index()
-                    dept_counts.columns = ['Département', 'Nombre de Rapports']
-                    st.bar_chart(dept_counts.set_index('Département'))
-                
-                st.markdown("---")
-                
-                # --- SECTION 2 : PILIERS STRATÉGIQUES ---
-                st.subheader("🎯 Résumé des Piliers Stratégiques")
-                df_strat = df[df['report_type'] == 'Strategic']
-                
-                if df_strat.empty:
-                    st.info("Aucun rapport de pilier stratégique soumis pour l'instant.")
-                else:
-                    pillar_counts = df_strat['category'].value_counts().reset_index()
-                    pillar_counts.columns = ['Pilier Stratégique', 'Nombre de Rapports']
-                    st.bar_chart(pillar_counts.set_index('Pilier Stratégique'))
-                
-                st.markdown("---")
-                
-                # --- CENTRE DE TÉLÉCHARGEMENT GLOBAL ---
-                st.subheader("📥 Centre de Téléchargement Global")
-                st.markdown("Téléchargez l'intégralité des données (départements et piliers confondus) en un seul clic pour vos bilans.")
-                
+            df = pd.read_sql("SELECT * FROM juc_reports", engine)
+            
+            # --- SOMMET : BULLÉ ADMIN ---
+            st.markdown("""
+                <div class="bubble-admin">
+                    <h3>🏛️ Administration & Direction</h3>
+                    <p>Supervision générale et pilotage institutionnel</p>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            # --- NIVEAU INTERMÉDIAIRE : LES 3 COLONNES (DEPARTEMENTS / PILIERS) ---
+            col_left, col_mid, col_right = st.columns(3)
+            
+            with col_left:
+                st.markdown("""
+                    <div class="bubble-card">
+                        <h4>💼 Finance & Admin</h4>
+                        <p>Gestion financière & Opérations</p>
+                    </div>
+                """, unsafe_allow_html=True)
+                if not df.empty:
+                    fin_count = len(df[df['category'] == 'Finance'])
+                    st.metric("Rapports Finance", fin_count)
+            
+            with col_mid:
+                st.markdown("""
+                    <div class="bubble-card">
+                        <h4>📊 Program Management</h4>
+                        <p>Coordination des programmes & M&E</p>
+                    </div>
+                """, unsafe_allow_html=True)
+                if not df.empty:
+                    prog_count = len(df[df['category'].str.contains('Program|Monitoring', case=False, na=False)])
+                    st.metric("Rapports Programmes", prog_count)
+            
+            with col_right:
+                st.markdown("""
+                    <div class="bubble-card">
+                        <h4>🎯 Piliers Stratégiques</h4>
+                        <p>Piliers 1, 2, 3 & 4</p>
+                    </div>
+                """, unsafe_allow_html=True)
+                if not df.empty:
+                    strat_count = len(df[df['report_type'] == 'Strategic'])
+                    st.metric("Rapports Piliers", strat_count)
+
+            st.markdown("---")
+            
+            # --- SECTION TÉLÉCHARGEMENT ET TABLE ---
+            st.subheader("📥 Centre de Téléchargement Global")
+            if not df.empty:
                 csv_data = df.to_csv(index=False).encode("utf-8")
                 st.download_button(
-                    label="📥 Télécharger la base complète unifiée (CSV)",
+                    label="📥 Télécharger toutes les données unifiées (CSV)",
                     data=csv_data,
-                    file_name=f"juc_unified_reports_{date.today()}.csv",
+                    file_name=f"juc_bubble_reports_{date.today()}.csv",
                     mime="text/csv",
                     use_container_width=True
                 )
-                
-                st.markdown("---")
-                st.subheader("📋 Table Détaillée Globale")
+                st.markdown("### 📋 Détail complet des données")
                 st.dataframe(df, use_container_width=True)
+            else:
+                st.info("Aucune donnée enregistrée pour le moment.")
                 
         except Exception as e:
-            st.error(f"Erreur lors du chargement des analyses : {e}")
+            st.error(f"Erreur lors du chargement des bulles : {e}")
 
 # --- 4. ADMIN ---
 elif menu == t["admin"]:
