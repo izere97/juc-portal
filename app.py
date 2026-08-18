@@ -109,92 +109,252 @@ if menu == t["weekly"]:
                     conn.commit()
                 st.success("Weekly report submitted successfully!")
 
-# --- 2. RAPPORT PAR PILIER STRATÉGIQUE (Activités exhaustives par le Plan Stratégique) ---
+# --- 2. RAPPORT PAR PILIER STRATÉGIQUE (Formulaires séparés par Pilier) ---
 elif menu == t["strat"]:
     st.header(t["strat"])
-    st.markdown("Rapports détaillés alignés sur les objectifs et activités spécifiques de chaque pilier du Plan Stratégique.")
+    st.markdown("Veuillez sélectionner le pilier stratégique concerné pour accéder à ses objectifs et activités spécifiques.")
 
-    # Dictionnaire détaillé reprenant exactement toutes les sous-activités du plan stratégique
-    pillars_data = {
-        "Pillar 1: Research, Policy Advocacy and Civic Engagement": [
-            "Obj 1.1 - Quarterly publication of the Basic Needs Basket",
-            "Obj 1.1 - Policy briefs, research reports, and semestrial journal",
-            "Obj 1.1 - Hosting annual social justice conferences",
-            "Obj 1.1 - JUC Policy Forum (public op-eds, policy roundtables, media briefs)",
-            "Obj 1.2 - Life-skills training on drug abuse and sexual morality",
-            "Obj 1.2 - Leadership training programs for youth",
-            "Obj 1.2 - Public dialogues on governance, ethics, and citizenship",
-            "Obj 1.2 - Peace and constitutional literacy programs",
-            "Obj 1.2 - Annual Pluralistic Governance Forums",
-            "Obj 1.3 - African Jesuit AIDS Network HIV/AIDS Youth Prevention Program (AHAPPY)",
-            "Obj 1.3 - Value-based education and sexual/reproductive health awareness",
-            "Obj 1.3 - Drug abuse prevention campaigns"
-        ],
-        "Pillar 2: Women & Youth Empowerment through Social Innovation and Entrepreneurship": [
-            "Obj 2.1 - Social innovation incubation bootcamps",
-            "Obj 2.1 - Financial literacy training workshops",
-            "Obj 2.1 - Targeted women's empowerment cooperatives",
-            "Obj 2.1 - Gender and Youth Agency Index (GYAI) Assessment & Monitoring"
-        ],
-        "Pillar 3: Integral Ecology and Community Resilience": [
-            "Obj 3.1 - Climate change awareness campaigns",
-            "Obj 3.1 - Laudato Si’ formation programs",
-            "Obj 3.1 - Ecological retreats and reflections",
-            "Obj 3.2 - Sustainable agriculture training",
-            "Obj 3.2 - Kitchen gardens and nutrition programs",
-            "Obj 3.2 - Climate-smart farming projects"
-        ],
-        "Pillar 4: Institutional Capacity Strengthening and Sustainability": [
-            "Obj 4.1 - Staff capacity-building and development",
-            "Obj 4.1 - Performance management implementation",
-            "Obj 4.1 - Establishing distinct departments with demarcated duties",
-            "Obj 4.1 - Consolidating monitoring and advisory boards",
-            "Obj 4.2 - Building corporate partnerships",
-            "Obj 4.2 - Designing diversified fundraising plans",
-            "Obj 4.2 - Establishing internal income-generating projects"
+    # Sélection du pilier via un radio/selectbox principal
+    chosen_pillar = st.selectbox(
+        "Select Strategic Pillar / Sélectionnez le Pilier Stratégique",
+        [
+            "Pillar 1: Research, Policy Advocacy and Civic Engagement",
+            "Pillar 2: Women & Youth Empowerment through Social Innovation and Entrepreneurship",
+            "Pillar 3: Integral Ecology and Community Resilience",
+            "Pillar 4: Institutional Capacity Strengthening and Sustainability"
         ]
-    }
+    )
 
-    with st.form("strategic_report_form"):
-        col1, col2 = st.columns(2)
-        with col1:
-            staff_name = st.text_input("Full Name / Nom complet")
-        with col2:
-            submission_date = st.date_input("Submission Date / Date de soumission", value=date.today())
+    st.markdown("---")
+
+    # ==========================================
+    # PILIER 1
+    # ==========================================
+    if chosen_pillar == "Pillar 1: Research, Policy Advocacy and Civic Engagement":
+        st.subheader("Pillar 1: Research, Policy Advocacy and Civic Engagement")
+        
+        with st.form("form_pillar_1"):
+            col1, col2 = st.columns(2)
+            with col1:
+                staff_name = st.text_input("Full Name / Nom complet", key="p1_name")
+            with col2:
+                submission_date = st.date_input("Submission Date / Date de soumission", value=date.today(), key="p1_date")
+                
+            selected_activity = st.selectbox(
+                "Core Activity / Activité clé",
+                [
+                    "Obj 1.1 - Quarterly publication of the Basic Needs Basket",
+                    "Obj 1.1 - Policy briefs, research reports, and semestrial journal",
+                    "Obj 1.1 - Hosting annual social justice conferences",
+                    "Obj 1.1 - JUC Policy Forum (public op-eds, policy roundtables, media briefs)",
+                    "Obj 1.2 - Life-skills training on drug abuse and sexual morality",
+                    "Obj 1.2 - Leadership training programs for youth",
+                    "Obj 1.2 - Public dialogues on governance, ethics, and citizenship",
+                    "Obj 1.2 - Peace and constitutional literacy programs",
+                    "Obj 1.2 - Annual Pluralistic Governance Forums",
+                    "Obj 1.3 - African Jesuit AIDS Network HIV/AIDS Youth Prevention Program (AHAPPY)",
+                    "Obj 1.3 - Value-based education and sexual/reproductive health awareness",
+                    "Obj 1.3 - Drug abuse prevention campaigns"
+                ],
+                key="p1_act"
+            )
             
-        selected_pillar = st.selectbox(t["pillar"], list(pillars_data.keys()))
-        selected_activity = st.selectbox("Core Activity / Activité clé", pillars_data[selected_pillar])
-        
-        col3, col4 = st.columns(2)
-        with col3:
-            quantitative_metrics = st.text_input("Quantitative Metrics (e.g., participants count, reports count) / Indicateurs chiffrés")
-        with col4:
-            beneficiaries = st.text_input("Target Group / Beneficiaries / Groupe cible")
+            col3, col4 = st.columns(2)
+            with col3:
+                quantitative_metrics = st.text_input("Quantitative Metrics (participants count, reports count)", key="p1_qm")
+            with col4:
+                beneficiaries = st.text_input("Target Group / Beneficiaries", key="p1_ben")
+                
+            details = st.text_area("Detailed Progress & Qualitative Achievements", key="p1_det")
+            challenges = st.text_area("Implementation Challenges", key="p1_chal")
+            recommendations = st.text_area("Recommendations", key="p1_rec")
+            doc = st.file_uploader("Upload monitoring document", type=['pdf', 'jpg', 'png', 'docx'], key="p1_doc")
             
-        details = st.text_area("Detailed Progress & Qualitative Achievements / Progrès détaillés et réalisations qualitatives")
-        challenges = st.text_area("Implementation Challenges / Défis de mise en œuvre")
-        recommendations = st.text_area("Recommendations / Recommandations")
+            if st.form_submit_button(t["submit"]):
+                if not staff_name or not details:
+                    st.error("Please fill in all mandatory fields (Name and Details).")
+                elif engine:
+                    full_details = f"Metrics: {quantitative_metrics} | Beneficiaries: {beneficiaries} || Progress: {details} || Challenges: {challenges} || Recommendations: {recommendations}"
+                    with engine.connect() as conn:
+                        conn.execute(text("""
+                            INSERT INTO juc_reports (submission_date, staff_name, report_type, category, sub_category, details) 
+                            VALUES (:sub_date, :n, 'Strategic', :c, :sub, :d)
+                        """), {
+                            "sub_date": submission_date,
+                            "n": staff_name, 
+                            "c": "Pillar 1: Research, Policy Advocacy and Civic Engagement", 
+                            "sub": selected_activity,
+                            "d": full_details
+                        })
+                        conn.commit()
+                    st.success("Pillar 1 report submitted successfully!")
+
+    # ==========================================
+    # PILIER 2
+    # ==========================================
+    elif chosen_pillar == "Pillar 2: Women & Youth Empowerment through Social Innovation and Entrepreneurship":
+        st.subheader("Pillar 2: Women & Youth Empowerment through Social Innovation and Entrepreneurship")
         
-        doc = st.file_uploader("Upload monitoring document / Document de suivi (PDF/Img)", type=['pdf', 'jpg', 'png', 'docx'])
+        with st.form("form_pillar_2"):
+            col1, col2 = st.columns(2)
+            with col1:
+                staff_name = st.text_input("Full Name / Nom complet", key="p2_name")
+            with col2:
+                submission_date = st.date_input("Submission Date / Date de soumission", value=date.today(), key="p2_date")
+                
+            selected_activity = st.selectbox(
+                "Core Activity / Activité clé",
+                [
+                    "Obj 2.1 - Social innovation incubation bootcamps",
+                    "Obj 2.1 - Financial literacy training workshops",
+                    "Obj 2.1 - Targeted women's empowerment cooperatives",
+                    "Obj 2.1 - Gender and Youth Agency Index (GYAI) Assessment & Monitoring"
+                ],
+                key="p2_act"
+            )
+            
+            col3, col4 = st.columns(2)
+            with col3:
+                quantitative_metrics = st.text_input("Quantitative Metrics (participants count, reports count)", key="p2_qm")
+            with col4:
+                beneficiaries = st.text_input("Target Group / Beneficiaries", key="p2_ben")
+                
+            details = st.text_area("Detailed Progress & Qualitative Achievements", key="p2_det")
+            challenges = st.text_area("Implementation Challenges", key="p2_chal")
+            recommendations = st.text_area("Recommendations", key="p2_rec")
+            doc = st.file_uploader("Upload monitoring document", type=['pdf', 'jpg', 'png', 'docx'], key="p2_doc")
+            
+            if st.form_submit_button(t["submit"]):
+                if not staff_name or not details:
+                    st.error("Please fill in all mandatory fields (Name and Details).")
+                elif engine:
+                    full_details = f"Metrics: {quantitative_metrics} | Beneficiaries: {beneficiaries} || Progress: {details} || Challenges: {challenges} || Recommendations: {recommendations}"
+                    with engine.connect() as conn:
+                        conn.execute(text("""
+                            INSERT INTO juc_reports (submission_date, staff_name, report_type, category, sub_category, details) 
+                            VALUES (:sub_date, :n, 'Strategic', :c, :sub, :d)
+                        """), {
+                            "sub_date": submission_date,
+                            "n": staff_name, 
+                            "c": "Pillar 2: Women & Youth Empowerment", 
+                            "sub": selected_activity,
+                            "d": full_details
+                        })
+                        conn.commit()
+                    st.success("Pillar 2 report submitted successfully!")
+
+    # ==========================================
+    # PILIER 3
+    # ==========================================
+    elif chosen_pillar == "Pillar 3: Integral Ecology and Community Resilience":
+        st.subheader("Pillar 3: Integral Ecology and Community Resilience")
         
-        if st.form_submit_button(t["submit"]):
-            if not staff_name or not details:
-                st.error("Please fill in all mandatory fields (Name and Details).")
-            elif engine:
-                full_details = f"Metrics: {quantitative_metrics} | Beneficiaries: {beneficiaries} || Progress: {details} || Challenges: {challenges} || Recommendations: {recommendations}"
-                with engine.connect() as conn:
-                    conn.execute(text("""
-                        INSERT INTO juc_reports (submission_date, staff_name, report_type, category, sub_category, details) 
-                        VALUES (:sub_date, :n, 'Strategic', :c, :sub, :d)
-                    """), {
-                        "sub_date": submission_date,
-                        "n": staff_name, 
-                        "c": selected_pillar, 
-                        "sub": selected_activity,
-                        "d": full_details
-                    })
-                    conn.commit()
-                st.success("Strategic report submitted successfully!")
+        with st.form("form_pillar_3"):
+            col1, col2 = st.columns(2)
+            with col1:
+                staff_name = st.text_input("Full Name / Nom complet", key="p3_name")
+            with col2:
+                submission_date = st.date_input("Submission Date / Date de soumission", value=date.today(), key="p3_date")
+                
+            selected_activity = st.selectbox(
+                "Core Activity / Activité clé",
+                [
+                    "Obj 3.1 - Climate change awareness campaigns",
+                    "Obj 3.1 - Laudato Si’ formation programs",
+                    "Obj 3.1 - Ecological retreats and reflections",
+                    "Obj 3.2 - Sustainable agriculture training",
+                    "Obj 3.2 - Kitchen gardens and nutrition programs",
+                    "Obj 3.2 - Climate-smart farming projects"
+                ],
+                key="p3_act"
+            )
+            
+            col3, col4 = st.columns(2)
+            with col3:
+                quantitative_metrics = st.text_input("Quantitative Metrics (participants count, reports count)", key="p3_qm")
+            with col4:
+                beneficiaries = st.text_input("Target Group / Beneficiaries", key="p3_ben")
+                
+            details = st.text_area("Detailed Progress & Qualitative Achievements", key="p3_det")
+            challenges = st.text_area("Implementation Challenges", key="p3_chal")
+            recommendations = st.text_area("Recommendations", key="p3_rec")
+            doc = st.file_uploader("Upload monitoring document", type=['pdf', 'jpg', 'png', 'docx'], key="p3_doc")
+            
+            if st.form_submit_button(t["submit"]):
+                if not staff_name or not details:
+                    st.error("Please fill in all mandatory fields (Name and Details).")
+                elif engine:
+                    full_details = f"Metrics: {quantitative_metrics} | Beneficiaries: {beneficiaries} || Progress: {details} || Challenges: {challenges} || Recommendations: {recommendations}"
+                    with engine.connect() as conn:
+                        conn.execute(text("""
+                            INSERT INTO juc_reports (submission_date, staff_name, report_type, category, sub_category, details) 
+                            VALUES (:sub_date, :n, 'Strategic', :c, :sub, :d)
+                        """), {
+                            "sub_date": submission_date,
+                            "n": staff_name, 
+                            "c": "Pillar 3: Integral Ecology", 
+                            "sub": selected_activity,
+                            "d": full_details
+                        })
+                        conn.commit()
+                    st.success("Pillar 3 report submitted successfully!")
+
+    # ==========================================
+    # PILIER 4
+    # ==========================================
+    elif chosen_pillar == "Pillar 4: Institutional Capacity Strengthening and Sustainability":
+        st.subheader("Pillar 4: Institutional Capacity Strengthening and Sustainability")
+        
+        with st.form("form_pillar_4"):
+            col1, col2 = st.columns(2)
+            with col1:
+                staff_name = st.text_input("Full Name / Nom complet", key="p4_name")
+            with col2:
+                submission_date = st.date_input("Submission Date / Date de soumission", value=date.today(), key="p4_date")
+                
+            selected_activity = st.selectbox(
+                "Core Activity / Activité clé",
+                [
+                    "Obj 4.1 - Staff capacity-building and development",
+                    "Obj 4.1 - Performance management implementation",
+                    "Obj 4.1 - Establishing distinct departments with demarcated duties",
+                    "Obj 4.1 - Consolidating monitoring and advisory boards",
+                    "Obj 4.2 - Building corporate partnerships",
+                    "Obj 4.2 - Designing diversified fundraising plans",
+                    "Obj 4.2 - Establishing internal income-generating projects"
+                ],
+                key="p4_act"
+            )
+            
+            col3, col4 = st.columns(2)
+            with col3:
+                quantitative_metrics = st.text_input("Quantitative Metrics (participants count, reports count)", key="p4_qm")
+            with col4:
+                beneficiaries = st.text_input("Target Group / Beneficiaries", key="p4_ben")
+                
+            details = st.text_area("Detailed Progress & Qualitative Achievements", key="p4_det")
+            challenges = st.text_area("Implementation Challenges", key="p4_chal")
+            recommendations = st.text_area("Recommendations", key="p4_rec")
+            doc = st.file_uploader("Upload monitoring document", type=['pdf', 'jpg', 'png', 'docx'], key="p4_doc")
+            
+            if st.form_submit_button(t["submit"]):
+                if not staff_name or not details:
+                    st.error("Please fill in all mandatory fields (Name and Details).")
+                elif engine:
+                    full_details = f"Metrics: {quantitative_metrics} | Beneficiaries: {beneficiaries} || Progress: {details} || Challenges: {challenges} || Recommendations: {recommendations}"
+                    with engine.connect() as conn:
+                        conn.execute(text("""
+                            INSERT INTO juc_reports (submission_date, staff_name, report_type, category, sub_category, details) 
+                            VALUES (:sub_date, :n, 'Strategic', :c, :sub, :d)
+                        """), {
+                            "sub_date": submission_date,
+                            "n": staff_name, 
+                            "c": "Pillar 4: Institutional Capacity", 
+                            "sub": selected_activity,
+                            "d": full_details
+                        })
+                        conn.commit()
+                    st.success("Pillar 4 report submitted successfully!")
 
 # --- 3. DASHBOARD ---
 elif menu == t["dash"]:
