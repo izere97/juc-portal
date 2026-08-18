@@ -23,6 +23,24 @@ if "lang" not in st.session_state: st.session_state.lang = "English"
 trans = get_translations()
 engine = create_engine(st.secrets["DATABASE_URL"]) if "DATABASE_URL" in st.secrets else None
 
+# --- CRÉATION AUTOMATIQUE DE LA TABLE SI ELLE N'EXISTE PAS ---
+if engine:
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS juc_reports (
+                    id SERIAL PRIMARY KEY,
+                    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    staff_name TEXT,
+                    report_type TEXT,
+                    category TEXT,
+                    details TEXT
+                );
+            """))
+            conn.commit()
+    except Exception as e:
+        st.error(f"Erreur lors de la création de la table : {e}")
+
 # --- UI & BACKGROUND ---
 st.sidebar.subheader(trans[st.session_state.lang]["lang"])
 st.session_state.lang = st.sidebar.selectbox("", ["English", "Français", "Kinyarwanda", "Dutch", "Italian", "Spanish"])
@@ -81,28 +99,35 @@ elif menu == t["strat"]:
 elif menu == t["dash"]:
     st.header(t["dash"])
     if engine:
-        df = pd.read_sql("SELECT * FROM juc_reports", engine)
-        st.dataframe(df)
+        try:
+            df = pd.read_sql("SELECT * FROM juc_reports", engine)
+            st.dataframe(df)
+        except Exception as e:
+            st.info("Aucune donnée à afficher pour le moment ou table vide.")
 
 # --- ADMIN (SUPPRESSION PARTIELLE OU TOTALE) ---
 elif menu == t["admin"]:
     st.header(t["admin"])
     
     if engine:
-        df = pd.read_sql("SELECT id, date, staff_name, report_type, category FROM juc_reports", engine)
-        st.dataframe(df)
-        
-        st.subheader("Supprimer un enregistrement spécifique par ID")
-        report_id_to_delete = st.number_input("Entrez l'ID de la ligne à supprimer", min_value=0, step=1)
-        
-        if st.button("Supprimer cette ligne"):
-            try:
-                with engine.connect() as conn:
-                    conn.execute(text("DELETE FROM juc_reports WHERE id = :id"), {"id": report_id_to_delete})
-                    conn.commit()
-                st.success(f"Ligne avec l'ID {report_id_to_delete} supprimée avec succès.")
-            except Exception as e:
-                st.error(f"Erreur : {e}")
+        try:
+            df = pd.read_sql("SELECT id, date, staff_name, report_type, category FROM juc_reports", engine)
+            if df.empty:
+                st.info("La base de données est actuellement vide.")
+            else:
+                st.dataframe(df)
+                
+                st.subheader("Supprimer un enregistrement spécifique par ID")
+                report_id_to_delete = st.number_input("Entrez l'ID de la ligne à supprimer", min_value=0, step=1)
+                
+                if st.button("Supprimer cette ligne"):
+                    with engine.connect() as conn:
+                        conn.execute(text("DELETE FROM juc_reports WHERE id = :id"), {"id": report_id_to_delete})
+                        conn.commit()
+                    st.success(f"Ligne avec l'ID {report_id_to_delete} supprimée avec succès.")
+                    st.rerun()
+        except Exception as e:
+            st.info("Initialisation de la table en cours...")
                 
         st.markdown("---")
         if st.button("🗑️ TOUT SUPPRIMER (Réinitialisation totale)"):
@@ -110,3 +135,4 @@ elif menu == t["admin"]:
                 conn.execute(text("DELETE FROM juc_reports"))
                 conn.commit()
             st.warning("Base de données entièrement vidée.")
+            st.rerun()
