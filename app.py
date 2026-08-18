@@ -43,15 +43,12 @@ if engine:
     except Exception as e:
         st.error(f"Erreur d'initialisation de la base de données : {e}")
 
-# --- UI & FULL SCREEN BACKGROUND ---
+# --- UI & FULL SCREEN BACKGROUND (Optimisé pour la visibilité) ---
 st.sidebar.subheader(trans[st.session_state.lang]["lang"])
 st.session_state.lang = st.sidebar.selectbox("", ["English", "Français", "Kinyarwanda", "Dutch", "Italian", "Spanish"])
 t = trans[st.session_state.lang]
 
-# Nom de votre image de fond par défaut
 default_bg_name = "generated_image-width=4096_height=3058.jpg"
-
-# Option pour charger une autre image si besoin, sinon utilise par défaut le fichier local
 bg_file = st.sidebar.file_uploader("🖼️ Changer l'image de fond (Optionnel)", type=["jpg", "png", "jpeg"])
 
 if bg_file:
@@ -69,20 +66,28 @@ st.markdown(f"""
         background-repeat: no-repeat;
         background-attachment: fixed;
     }}
-    /* Conteneur principal avec effet verre dépoli */
+    
+    /* Conteneur principal bien opaque pour une lisibilité parfaite */
     .main .block-container {{
-        background: rgba(255, 255, 255, 0.82);
-        padding: 2rem;
+        background: rgba(255, 255, 255, 0.92);
+        padding: 2.5rem;
         border-radius: 15px;
-        backdrop-filter: blur(6px);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(8px);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     }}
-    /* Formulaires semi-transparents */
+    
+    /* Formulaires très lisibles sur fond clair opaque */
     div[data-testid="stForm"] {{
-        background: rgba(255, 255, 255, 0.9) !important;
-        padding: 20px;
-        border-radius: 10px;
-        backdrop-filter: blur(4px);
+        background: rgba(255, 255, 255, 0.98) !important;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(226, 232, 240, 1);
+    }}
+
+    /* Forcer la couleur des textes en noir/sombre pour un contraste maximal */
+    h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown {{
+        color: #0f172a !important;
     }}
     </style>
 """, unsafe_allow_html=True)
