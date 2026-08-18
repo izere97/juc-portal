@@ -34,10 +34,11 @@ if "bg_base64" not in st.session_state or not st.session_state.bg_base64:
     else:
         st.session_state.bg_base64 = ""
 
-# --- CRÉATION AUTOMATIQUE DE LA TABLE ---
+# --- CRÉATION & MISE À JOUR AUTOMATIQUE DE LA TABLE ---
 if engine:
     try:
         with engine.connect() as conn:
+            # S'assure que la table possède la structure exacte requise pour éviter les erreurs SQL
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS juc_reports (
                     id SERIAL PRIMARY KEY,
