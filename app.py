@@ -11,7 +11,8 @@ st.set_page_config(
 # ---------------------------------------------------------
 # GESTION DU FOND D'ÉCRAN (BACKGROUND) & STYLE CSS
 # ---------------------------------------------------------
-bg_image_name = "generated_image-width=4096_height=3058.jpg"
+# Remplacez "generated_image-width=4096_height=3058.png" par le nom exact de votre image si besoin
+bg_image_name = "generated_image-width=4096_height=3058.png"
 
 st.markdown(
     f"""
@@ -55,7 +56,7 @@ if app_mode == "Zone Administrateur":
       "Mot de passe administrateur", type="password"
   )
 
-  # Mot de passe secret personnel
+  # Changez "JUC2026Secure" par votre mot de passe secret personnel
   if admin_password == "JUC2026Secure":
     st.sidebar.success("Accès autorisé")
     st.title("🛠️ Panneau d'Administration Exclusif")
@@ -68,7 +69,7 @@ if app_mode == "Zone Administrateur":
     if admin_password:
       st.sidebar.error("Mot de passe incorrect")
     st.warning("Veuillez entrer le mot de passe administrateur dans la barre latérale pour accéder à cette zone.")
-    st.stop()
+    st.stop()  # Stoppe l'exécution du reste de la page admin si non connecté
 
 else:
   # ---------------------------------------------------------
@@ -80,6 +81,7 @@ else:
       " œuvre du Plan Stratégique JUC 2026-2031."
   )
 
+  # Exemple de formulaire de rapport hebdomadaire
   with st.form("weekly_report_form"):
     st.subheader("Soumission de Rapport Hebdomadaire")
     col1, col2 = st.columns(2)
@@ -106,6 +108,7 @@ else:
     submitted = st.form_submit_button("Envoyer le rapport")
     if submitted:
       if staff_name and activities_done:
+        # Code d'insertion dans la base de données PostgreSQL (Neon)
         st.success("Rapport soumis et enregistré avec succès dans la base de données !")
       else:
         st.error("Veuillez remplir au moins votre nom et les activités réalisées.")
