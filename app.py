@@ -375,8 +375,7 @@ elif menu == t["dash"]:
                         doc = Document()
                         doc.add_heading(f"Rapport JUC - {selected_cat_view}", 0)
                         doc.add_paragraph(f"Date de génération : {date.today().strftime('%Y-%m-%d')}")
-                        doc.add_paragraph(f"Nombre total de soumissions : {len(filtered_df)}")
-                        doc.add_heading("Détail des activités", level=1)
+                        doc.add_heading("Détail des activités par département", level=1)
                         
                         for index, row in filtered_df.iterrows():
                             p = doc.add_paragraph()
@@ -401,7 +400,6 @@ elif menu == t["dash"]:
                 else:
                     # MODE RÉSUMÉ GLOBAL
                     st.markdown("### 📋 Aperçu du Résumé Global (Tous les Départements)")
-                    st.write(f"Nombre total de rapports enregistrés : {len(df)}")
                     
                     # Affichage d'un tableau récapitulatif rapide à l'écran
                     summary_counts = df['category'].value_counts().reset_index()
@@ -413,23 +411,24 @@ elif menu == t["dash"]:
                         doc = Document()
                         doc.add_heading("Rapport Consolidé JUC - Résumé Global", 0)
                         doc.add_paragraph(f"Date de génération : {date.today().strftime('%Y-%m-%d')}")
-                        doc.add_paragraph(f"Nombre total de rapports consolidés : {len(df)}")
                         
-                        # Section Résumé Analytique sur une page
-                        doc.add_heading("1. Résumé analytique par département", level=1)
-                        for cat, count in df['category'].value_counts().items():
-                            doc.add_paragraph(f"• {cat} : {count} rapport(s) soumis.")
+                        # Section Détails Complets par Département (sans comptage numérique)
+                        doc.add_heading("1. Détails des rapports par département", level=1)
                         
-                        # Section Détails Complets
-                        doc.add_heading("2. Détails complets des activités", level=1)
-                        for index, row in df.iterrows():
-                            p = doc.add_paragraph()
-                            p.add_run(f"[{row.get('category', 'N/A')}] {row.get('staff_name', 'N/A')}").bold = True
-                            p.add_run(f" — Date : {row.get('submission_date', 'N/A')}\n")
-                            p.add_run(f"Activités : {row.get('completed_activities', 'N/A')}\n")
-                            if row.get('challenges'):
-                                p.add_run(f"Défis : {row.get('challenges', 'N/A')}\n")
-                            p.add_run("\n")
+                        for cat in df['category'].dropna().unique():
+                            doc.add_heading(f"Département / Pilier : {cat}", level=2)
+                            cat_rows = df[df['category'] == cat]
+                            
+                            for index, row in cat_rows.iterrows():
+                                p = doc.add_paragraph()
+                                p.add_run(f"Collaborateur : {row.get('staff_name', 'N/A')}").bold = True
+                                p.add_run(f" — Date : {row.get('submission_date', 'N/A')}\n")
+                                p.add_run(f"Activités réalisées : {row.get('completed_activities', 'N/A')}\n")
+                                if row.get('pending_issues'):
+                                    p.add_run(f"Projections : {row.get('pending_issues', 'N/A')}\n")
+                                if row.get('challenges'):
+                                    p.add_run(f"Défis : {row.get('challenges', 'N/A')}\n")
+                                p.add_run("\n")
                         
                         buffer = io.BytesIO()
                         doc.save(buffer)
