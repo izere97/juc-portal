@@ -1,5 +1,5 @@
 import base64
-from datetime import datetime
+from datetime import date, datetime
 import pandas as pd
 from sqlalchemy import create_engine, text
 import streamlit as st
@@ -23,14 +23,15 @@ if "lang" not in st.session_state: st.session_state.lang = "English"
 trans = get_translations()
 engine = create_engine(st.secrets["DATABASE_URL"]) if "DATABASE_URL" in st.secrets else None
 
-# --- CRÉATION AUTOMATIQUE DE LA TABLE ---
+# --- CRÉATION AUTOMATIQUE DE LA TABLE (avec date de soumission) ---
 if engine:
     try:
         with engine.connect() as conn:
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS juc_reports (
                     id SERIAL PRIMARY KEY,
-                    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    submission_date DATE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     staff_name TEXT,
                     report_type TEXT,
                     category TEXT,
@@ -59,31 +60,37 @@ if st.sidebar.text_input("Password", type="password") != "JUC2026Secure":
 # --- NAVIGATION ---
 menu = st.sidebar.radio(t["title"], [t["weekly"], t["strat"], t["dash"], t["admin"]])
 
-# --- 1. RAPPORT HEBDOMADAIRE (Conforme au Mémo) ---
+# --- 1. RAPPORT HEBDOMADAIRE ---
 if menu == t["weekly"]:
     st.header(t["weekly"])
     st.info("Conformément au mémo de la direction, veuillez soumettre votre rapport d'activités pour la semaine ainsi que vos projections pour la semaine prochaine[cite: 2].")
     
     with st.form("weekly_memo_form"):
-        staff_name = st.text_input("Full Name / Nom complet")
+        col1, col2 = st.columns(2)
+        with col1:
+            staff_name = st.text_input("Full Name / Nom complet")
+        with col2:
+            submission_date = st.date_input("Submission Date / Date de soumission", value=date.today())
+            
         dept = st.selectbox(t["dept"], ["Administration", "Finance", "Program management", "Project office", "Communication office", "Front Desk", "Monitoring and Evaluation"])
         
         completed_activities = st.text_area("Activities completed for the week ending on Friday / Activités réalisées cette semaine")
         pending_issues = st.text_area("Projection of pending issues to be completed or initiated next week / Projections et dossiers en attente pour la semaine prochaine")
+        challenges = st.text_area("Challenges Encountered / Défis rencontrés")
         
-        doc = st.file_uploader("Upload supporting document / Document justificatif", type=['pdf', 'jpg', 'png'])
+        doc = st.file_uploader("Upload supporting document / Document justificatif", type=['pdf', 'jpg', 'png', 'docx'])
         
         if st.form_submit_button(t["submit"]):
             if not staff_name or not completed_activities:
                 st.error("Please fill in your name and completed activities.")
             elif engine:
-                combined_details = f"Accomplished: {completed_activities} || Pending/Next week: {pending_issues}"
+                combined_details = f"Accomplished: {completed_activities} || Pending/Next week: {pending_issues} || Challenges: {challenges}"
                 with engine.connect() as conn:
                     conn.execute(text("""
-                        INSERT INTO juc_reports (date, staff_name, report_type, category, sub_category, details) 
-                        VALUES (:date, :n, 'Weekly', :c, :sub, :d)
+                        INSERT INTO juc_reports (submission_date, staff_name, report_type, category, sub_category, details) 
+                        VALUES (:sub_date, :n, 'Weekly', :c, :sub, :d)
                     """), {
-                        "date": datetime.now(),
+                        "sub_date": submission_date,
                         "n": staff_name, 
                         "c": dept, 
                         "sub": "Weekly Memo Report",
@@ -92,12 +99,12 @@ if menu == t["weekly"]:
                     conn.commit()
                 st.success("Weekly report submitted successfully!")
 
-# --- 2. RAPPORT PAR PILIER STRATÉGIQUE (Plan 2026-2031) ---
+# --- 2. RAPPORT PAR PILIER STRATÉGIQUE (Activités uniques par pilier) ---
 elif menu == t["strat"]:
     st.header(t["strat"])
-    st.markdown("Rapports alignés sur les quatre piliers stratégiques et leurs activités clés (2026–2031)[cite: 1].")
+    st.markdown("Rapports détaillés alignés strictement sur les activités spécifiques de chaque pilier du Plan Stratégique (2026–2031)[cite: 1].")
 
-    # Dictionnaire des piliers et activités du Plan Stratégique
+    # Dictionnaire avec les activités propres à chaque pilier (Correction de la duplication précédente)
     pillars_data = {
         "Pillar 1: Research, Policy Advocacy and Civic Engagement": [
             "Basic Needs Basket Updates",
@@ -127,27 +134,42 @@ elif menu == t["strat"]:
     }
 
     with st.form("strategic_report_form"):
-        staff_name = st.text_input("Full Name / Nom complet")
+        col1, col2 = st.columns(2)
+        with col1:
+            staff_name = st.text_input("Full Name / Nom complet")
+        with col2:
+            submission_date = st.date_input("Submission Date / Date de soumission", value=date.today())
+            
         selected_pillar = st.selectbox(t["pillar"], list(pillars_data.keys()))
         selected_activity = st.selectbox("Core Activity / Activité clé", pillars_data[selected_pillar])
         
-        details = st.text_area("Detailed Progress, Metrics & Observations / Détails des progrès, indicateurs et observations")
-        doc = st.file_uploader("Upload monitoring document / Document de suivi", type=['pdf', 'jpg', 'png'])
+        col3, col4 = st.columns(2)
+        with col3:
+            quantitative_metrics = st.text_input("Quantitative Metrics (e.g., number of participants, reports produced) / Indicateurs chiffrés")
+        with col4:
+            beneficiaries = st.text_input("Target Group / Beneficiaries / Groupe cible")
+            
+        details = st.text_area("Detailed Progress & Qualitative Achievements / Progrès détaillés et réalisations qualitatives")
+        challenges = st.text_area("Implementation Challenges / Défis de mise en œuvre")
+        recommendations = st.text_area("Recommendations / Recommandations")
+        
+        doc = st.file_uploader("Upload monitoring document / Document de suivi (PDF/Img)", type=['pdf', 'jpg', 'png', 'docx'])
         
         if st.form_submit_button(t["submit"]):
             if not staff_name or not details:
-                st.error("Please fill in all mandatory fields.")
+                st.error("Please fill in all mandatory fields (Name and Details).")
             elif engine:
+                full_details = f"Metrics: {quantitative_metrics} | Beneficiaries: {beneficiaries} || Progress: {details} || Challenges: {challenges} || Recommendations: {recommendations}"
                 with engine.connect() as conn:
                     conn.execute(text("""
-                        INSERT INTO juc_reports (date, staff_name, report_type, category, sub_category, details) 
-                        VALUES (:date, :n, 'Strategic', :c, :sub, :d)
+                        INSERT INTO juc_reports (submission_date, staff_name, report_type, category, sub_category, details) 
+                        VALUES (:sub_date, :n, 'Strategic', :c, :sub, :d)
                     """), {
-                        "date": datetime.now(),
+                        "sub_date": submission_date,
                         "n": staff_name, 
                         "c": selected_pillar, 
                         "sub": selected_activity,
-                        "d": details
+                        "d": full_details
                     })
                     conn.commit()
                 st.success("Strategic report submitted successfully!")
@@ -157,7 +179,7 @@ elif menu == t["dash"]:
     st.header(t["dash"])
     if engine:
         try:
-            df = pd.read_sql("SELECT * FROM juc_reports ORDER BY date DESC", engine)
+            df = pd.read_sql("SELECT * FROM juc_reports ORDER BY submission_date DESC, created_at DESC", engine)
             if df.empty:
                 st.info("No reports recorded yet.")
             else:
@@ -176,7 +198,7 @@ elif menu == t["admin"]:
     
     if engine:
         try:
-            df = pd.read_sql("SELECT id, date, staff_name, report_type, category, sub_category FROM juc_reports ORDER BY date DESC", engine)
+            df = pd.read_sql("SELECT id, submission_date, staff_name, report_type, category, sub_category FROM juc_reports ORDER BY submission_date DESC", engine)
             if df.empty:
                 st.info("The database is currently empty.")
             else:
