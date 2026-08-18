@@ -10,22 +10,11 @@ st.set_page_config(
 )
 
 # --- CONNEXION NEON (BASE DE DONNÉES) ---
-try:
-  DATABASE_URL = st.secrets["DATABASE_URL"]
-except Exception:
-  DATABASE_URL = None
-
-@st.cache_resource
-def init_connection():
-  if not DATABASE_URL:
-    return None
-  return create_engine(DATABASE_URL)
+DATABASE_URL = st.secrets.get("DATABASE_URL")
+engine = create_engine(DATABASE_URL) if DATABASE_URL else None
 
 
-engine = init_connection()
-
-
-# --- CRÉATION DE LA TABLE SI ELLE N'EXISTE PAS ---
+# --- CRÉATION DE LA TABLE ---
 def create_table_if_not_exists():
   if engine is None:
     return
@@ -37,8 +26,9 @@ def create_table_if_not_exists():
                     id SERIAL PRIMARY KEY,
                     date TIMESTAMP,
                     staff_name TEXT,
-                    pillar TEXT,
-                    core_activity TEXT,
+                    report_type TEXT,
+                    category TEXT,
+                    sub_category TEXT,
                     details TEXT,
                     document_name TEXT
                 );
@@ -81,23 +71,26 @@ password_input = st.sidebar.text_input("Mot de passe du portail", type="password
 
 if password_input != "JUC2026Secure":
   st.warning(
-      "Veuillez entrer le mot de passe du portail (JUC2026Secure) dans la barre"
-      " latérale pour continuer."
+      "Veuillez entrer le mot de passe du portail (JUC2026Secure) pour"
+      " continuer."
   )
   st.stop()
 
-# --- NAVIGATION ---
-st.sidebar.markdown("---")
-menu = st.sidebar.radio(
-    "Navigation",
-    ["Soumettre un Rapport", "Dashboard & Analyses", "Gestion des Données"],
-)
+# --- LISTES OFFICIELLES ---
+departments_list = [
+    "Administration",
+    "Finance",
+    "Program management",
+    "Project office",
+    "Communication office",
+    "Front Desk",
+    "Monitoring and Evaluation",
+]
 
-# --- PILIERS STRATÉGIQUES ET ACTIVITÉS (Basés sur le plan stratégique) ---
 pillars_activities = {
     (
         "Pillar 1: Research, Policy Advocacy and Civic Engagement"
-    ): [  #
+    ): [  #[cite: 1]
         "Basic Needs Basket",
         "Policy Briefs & Research Reports",
         "Social Justice Conferences",
@@ -125,11 +118,81 @@ pillars_activities = {
     ],
 }
 
-# --- SECTION 1 : SOUMISSION DE RAPPORT ---
-if menu == "Soumettre un Rapport":
-  st.header("📚 JUC - Soumission de Rapport par Pilier Stratégique")
+# --- NAVIGATION SÉPARÉE ---
+st.sidebar.markdown("---")
+menu = st.sidebar.radio(
+    "Navigation",
+    [
+        "📅 Rapport Hebdomadaire (Départements)",
+        "🎯 Rapport par Pilier Stratégique",
+        "📊 Dashboard & Analyses",
+        "⚙️ Gestion des Données",
+    ],
+)
 
-  with st.form("juc_strategic_form"):
+# --- 1. RAPPORT HEBDOMADAIRE (SÉPARÉ) ---
+if menu == "📅 Rapport Hebdomadaire (Départements)":
+  st.header("📅 Soumission du Rapport Hebdomadaire")
+  st.markdown("Rapport d'activités spécifique aux différents départements du JUC.")
+
+  with st.form("weekly_report_form"):
+    staff_name = st.text_input("Nom complet du membre du personnel")
+    department = st.selectbox("Département", departments_list)
+
+    activities = st.text_area("Activités clés réalisées cette semaine")
+    challenges = st.text_area("Défis rencontrés")
+    next_steps = st.text_area("Priorités pour la semaine prochaine")
+
+    uploaded_doc = st.file_uploader(
+        "Joindre un document justificatif (PDF, Word, Image)",
+        type=["pdf", "docx", "jpg", "png"],
+    )
+
+    submitted = st.form_submit_button("Soumettre le Rapport Hebdomadaire")
+
+    if submitted:
+      if not staff_name or not activities:
+        st.error(
+            "Veuillez remplir au moins votre nom et les activités réalisées."
+        )
+      elif engine is None:
+        st.error("Erreur de connexion à la base de données Neon.")
+      else:
+        try:
+          doc_name = uploaded_doc.name if uploaded_doc else "Aucun document"
+          details_combined = (
+              f"Défis: {challenges} | Prochaine étape: {next_steps}"
+          )
+          with engine.connect() as conn:
+            query = text("""
+                            INSERT INTO juc_reports (date, staff_name, report_type, category, sub_category, details, document_name)
+                            VALUES (:date, :staff_name, :report_type, :category, :sub_category, :details, :document_name)
+                        """)
+            conn.execute(
+                query,
+                {
+                    "date": datetime.now(),
+                    "staff_name": staff_name,
+                    "report_type": "Hebdomadaire",
+                    "category": department,
+                    "sub_category": "N/A",
+                    "details": (
+                        f"Activités: {activities} || {details_combined}"
+                    ),
+                    "document_name": doc_name,
+                },
+            )
+            conn.commit()
+          st.success("Rapport hebdomadaire enregistré avec succès !")
+        except Exception as e:
+          st.error(f"Erreur lors de l'enregistrement : {e}")
+
+# --- 2. RAPPORT PAR PILIER STRATÉGIQUE (SÉPARÉ) ---
+elif menu == "🎯 Rapport par Pilier Stratégique":
+  st.header("🎯 Soumission par Pilier Stratégique (2026-2031)")
+  st.markdown("Rapport aligné sur les objectifs stratégiques institutionnels[cite: 1].")
+
+  with st.form("strategic_report_form"):
     staff_name = st.text_input("Nom complet du membre du personnel")
     selected_pillar = st.selectbox(
         "Sélectionner le Pilier Stratégique", list(pillars_activities.keys())
@@ -139,22 +202,19 @@ if menu == "Soumettre un Rapport":
     )
 
     details = st.text_area(
-        "Détails du rapport, progrès et observations sur le terrain"
+        "Détails des progrès, indicateurs et observations de terrain"
     )
 
-    # Option d'upload de document
     uploaded_doc = st.file_uploader(
-        "Joindre un document justificatif (PDF, Word, Image)",
+        "Joindre un document de suivi (PDF, Word, Image)",
         type=["pdf", "docx", "jpg", "png"],
     )
 
-    submitted = st.form_submit_button("Soumettre le Rapport")
+    submitted_strat = st.form_submit_button("Soumettre le Rapport Stratégique")
 
-    if submitted:
+    if submitted_strat:
       if not staff_name or not details:
-        st.error(
-            "Veuillez remplir au moins votre nom et les détails du rapport."
-        )
+        st.error("Veuillez remplir les champs obligatoires.")
       elif engine is None:
         st.error("Erreur de connexion à la base de données Neon.")
       else:
@@ -162,30 +222,29 @@ if menu == "Soumettre un Rapport":
           doc_name = uploaded_doc.name if uploaded_doc else "Aucun document"
           with engine.connect() as conn:
             query = text("""
-                            INSERT INTO juc_reports (date, staff_name, pillar, core_activity, details, document_name)
-                            VALUES (:date, :staff_name, :pillar, :core_activity, :details, :document_name)
+                            INSERT INTO juc_reports (date, staff_name, report_type, category, sub_category, details, document_name)
+                            VALUES (:date, :staff_name, :report_type, :category, :sub_category, :details, :document_name)
                         """)
             conn.execute(
                 query,
                 {
                     "date": datetime.now(),
                     "staff_name": staff_name,
-                    "pillar": selected_pillar,
-                    "core_activity": selected_activity,
+                    "report_type": "Stratégique",
+                    "category": selected_pillar,
+                    "sub_category": selected_activity,
                     "details": details,
                     "document_name": doc_name,
                 },
             )
             conn.commit()
-          st.success(
-              "Rapport enregistré avec succès dans la base de données Neon !"
-          )
+          st.success("Rapport stratégique enregistré avec succès !")
         except Exception as e:
           st.error(f"Erreur lors de l'enregistrement : {e}")
 
-# --- SECTION 2 : DASHBOARD & ANALYSES ---
-elif menu == "Dashboard & Analyses":
-  st.header("📊 Tableau de Bord & Suivi M&E")
+# --- 3. DASHBOARD & ANALYSES ---
+elif menu == "📊 Dashboard & Analyses":
+  st.header("📊 Tableau de Bord Global")
 
   if engine is None:
     st.error("Erreur de connexion à la base de données.")
@@ -194,38 +253,39 @@ elif menu == "Dashboard & Analyses":
       df = pd.read_sql("SELECT * FROM juc_reports ORDER BY date DESC", engine)
 
       if df.empty:
-        st.info(
-            "Aucun rapport enregistré pour le moment. Commencez par soumettre un"
-            " rapport !"
-        )
+        st.info("Aucun rapport enregistré pour le moment.")
       else:
-        st.metric(label="Nombre total de rapports", value=len(df))
+        st.metric(label="Total des rapports", value=len(df))
 
-        # Graphique par pilier
-        st.markdown("### Répartition par Pilier Stratégique")
-        pillar_counts = df["pillar"].value_counts()
-        st.bar_chart(pillar_counts)
+        # Filtre par type de rapport
+        report_filter = st.selectbox(
+            "Filtrer par type de rapport",
+            ["Tous", "Hebdomadaire", "Stratégique"],
+        )
+        if report_filter != "Tous":
+          df_filtered = df[df["report_type"] == report_filter]
+        else:
+          df_filtered = df
 
-        st.markdown("### Historique détaillé des rapports")
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df_filtered, use_container_width=True)
 
         # Bouton de téléchargement CSV
-        csv_data = df.to_csv(index=False).encode("utf-8")
+        csv_data = df_filtered.to_csv(index=False).encode("utf-8")
         st.download_button(
             label="Télécharger les données en CSV",
             data=csv_data,
-            file_name="juc_strategic_reports.csv",
+            file_name="juc_reports_export.csv",
             mime="text/csv",
         )
     except Exception as e:
       st.error(f"Erreur lors de la lecture des données : {e}")
 
-# --- SECTION 3 : GESTION DES DONNÉES (SUPPRESSION) ---
-elif menu == "Gestion des Données":
+# --- 4. GESTION DES DONNÉES ---
+elif menu == "⚙️ Gestion des Données":
   st.header("⚙️ Gestion et Nettoyage des Données")
   st.warning(
       "⚠️ Attention : L'action ci-dessous supprime définitivement l'ensemble"
-      " des rapports enregistrés dans la base de données."
+      " des rapports de la base de données."
   )
 
   if st.button("🗑️ SUPPRIMER TOUTES LES DONNÉES", type="primary"):
@@ -233,9 +293,6 @@ elif menu == "Gestion des Données":
       with engine.connect() as conn:
         conn.execute(text("DELETE FROM juc_reports"))
         conn.commit()
-      st.success(
-          "Toutes les données ont été supprimées de la base de données avec"
-          " succès."
-      )
+      st.success("Base de données réinitialisée avec succès.")
     except Exception as e:
       st.error(f"Erreur lors de la suppression : {e}")
