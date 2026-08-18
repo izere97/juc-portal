@@ -17,7 +17,13 @@ def get_translations():
 
 if "lang" not in st.session_state: st.session_state.lang = "English"
 trans = get_translations()
-engine = create_engine(st.secrets["DATABASE_URL"]) if "DATABASE_URL" in st.secrets else None
+
+# --- CONNEXION BASE DE DONNÉES NEON ---
+try:
+    engine = create_engine(st.secrets["DATABASE_URL"])
+except Exception as e:
+    st.error("Erreur de connexion à la base de données. Vérifiez vos secrets Streamlit.")
+    engine = None
 
 # --- BACKGROUND & STYLE ---
 default_bg_name = "background.jpg"
@@ -68,19 +74,49 @@ if menu == t["weekly"]:
         challenges = st.text_area("Challenges Encountered")
         
         if st.form_submit_button(t["submit"]):
-            # Logique SQL ici...
-            st.success("Report submitted!")
+            if not staff_name:
+                st.warning("Please enter your full name.")
+            elif engine:
+                try:
+                    with engine.connect() as conn:
+                        query = text("""
+                            INSERT INTO juc_reports (staff_name, submission_date, completed_activities, pending_issues, challenges) 
+                            VALUES (:name, :date, :completed, :pending, :challenges)
+                        """)
+                        conn.execute(query, {
+                            "name": staff_name, 
+                            "date": submission_date, 
+                            "completed": completed, 
+                            "pending": pending, 
+                            "challenges": challenges
+                        })
+                        conn.commit()
+                    st.success("✅ Report submitted and saved to Neon Database!")
+                except Exception as ex:
+                    st.error(f"Error saving to database: {ex}")
 
 # --- 2. DASHBOARD ---
 elif menu == t["dash"]:
     st.header(t["dash"])
     if engine:
-        df = pd.read_sql("SELECT * FROM juc_reports", engine)
-        st.dataframe(df, use_container_width=True)
+        try:
+            df = pd.read_sql("SELECT * FROM juc_reports ORDER BY id DESC", engine)
+            st.dataframe(df, use_container_width=True)
+        except Exception as ex:
+            st.info("No reports found yet or table needs to be created.")
 
 # --- 3. ADMIN ---
 elif menu == t["admin"]:
     st.header(t["admin"])
-    if st.button("🗑️ DELETE ALL"):
-        # Logique suppression ici...
-        st.rerun()
+    st.warning("⚠️ Administrative actions affect live database records.")
+    
+    if st.button("🗑️ DELETE ALL REPORTS"):
+        if engine:
+            try:
+                with engine.connect() as conn:
+                    conn.execute(text("DELETE FROM juc_reports"))
+                    conn.commit()
+                st.success("All reports have been permanently deleted.")
+                st.rerun()
+            except Exception as ex:
+                st.error(f"Error clearing data: {ex}")
