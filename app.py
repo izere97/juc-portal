@@ -23,7 +23,7 @@ if "lang" not in st.session_state: st.session_state.lang = "English"
 trans = get_translations()
 engine = create_engine(st.secrets["DATABASE_URL"]) if "DATABASE_URL" in st.secrets else None
 
-# --- CRÉATION AUTOMATIQUE DE LA TABLE (avec date de soumission) ---
+# --- CRÉATION AUTOMATIQUE DE LA TABLE ---
 if engine:
     try:
         with engine.connect() as conn:
@@ -43,15 +43,25 @@ if engine:
     except Exception as e:
         st.error(f"Erreur d'initialisation de la base de données : {e}")
 
-# --- UI & BACKGROUND ---
+# --- UI & FULL SCREEN BACKGROUND ---
 st.sidebar.subheader(trans[st.session_state.lang]["lang"])
 st.session_state.lang = st.sidebar.selectbox("", ["English", "Français", "Kinyarwanda", "Dutch", "Italian", "Spanish"])
 t = trans[st.session_state.lang]
 
-bg_file = st.sidebar.file_uploader("🖼️ Background Image", type=["jpg", "png"])
+bg_file = st.sidebar.file_uploader("🖼️ Full Screen Background Image", type=["jpg", "png", "jpeg"])
 if bg_file:
     b64 = base64.b64encode(bg_file.read()).decode()
-    st.markdown(f"<style>.stApp {{background: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url(data:image/jpeg;base64,{b64}); background-size: cover;}}</style>", unsafe_allow_html=True)
+    st.markdown(f"""
+        <style>
+        .stApp {{
+            background: linear-gradient(rgba(245, 247, 250, 0.88), rgba(245, 247, 250, 0.88)), url(data:image/jpeg;base64,{b64});
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }}
+        </style>
+    """, unsafe_allow_html=True)
 
 if st.sidebar.text_input("Password", type="password") != "JUC2026Secure":
     st.warning("Access Restricted.")
@@ -63,7 +73,7 @@ menu = st.sidebar.radio(t["title"], [t["weekly"], t["strat"], t["dash"], t["admi
 # --- 1. RAPPORT HEBDOMADAIRE ---
 if menu == t["weekly"]:
     st.header(t["weekly"])
-    st.info("Conformément au mémo de la direction, veuillez soumettre votre rapport d'activités pour la semaine ainsi que vos projections pour la semaine prochaine[cite: 2].")
+    st.info("Conformément au mémo de la direction, veuillez soumettre votre rapport d'activités pour la semaine ainsi que vos projections pour la semaine prochaine.")
     
     with st.form("weekly_memo_form"):
         col1, col2 = st.columns(2)
@@ -99,37 +109,37 @@ if menu == t["weekly"]:
                     conn.commit()
                 st.success("Weekly report submitted successfully!")
 
-# --- 2. RAPPORT PAR PILIER STRATÉGIQUE (Activités uniques par pilier) ---
+# --- 2. RAPPORT PAR PILIER STRATÉGIQUE (Activités 100% distinctes et spécifiques par pilier) ---
 elif menu == t["strat"]:
     st.header(t["strat"])
-    st.markdown("Rapports détaillés alignés strictement sur les activités spécifiques de chaque pilier du Plan Stratégique (2026–2031)[cite: 1].")
+    st.markdown("Rapports détaillés alignés sur les activités spécifiques de chaque pilier du Plan Stratégique.")
 
-    # Dictionnaire avec les activités propres à chaque pilier (Correction de la duplication précédente)
+    # Dictionnaire strictement séparé : chaque pilier a ses propres activités uniques
     pillars_data = {
         "Pillar 1: Research, Policy Advocacy and Civic Engagement": [
             "Basic Needs Basket Updates",
-            "Policy Briefs & Research Reports",
-            "Social Justice Conferences",
+            "Policy Briefs & Research Reports Formulation",
+            "Social Justice Conferences & Public Debates",
             "Civic Education & Life-skills training (AHAPPY / Drug abuse prevention)",
-            "Pluralistic Governance Forums"
+            "Pluralistic Governance Forums Implementation"
         ],
         "Pillar 2: Women & Youth Empowerment through Social Innovation and Entrepreneurship": [
             "Social Innovation Incubation Bootcamps",
-            "Financial Literacy Training",
-            "Women's Empowerment Cooperatives",
+            "Financial Literacy Training Workshops",
+            "Women's Empowerment Cooperatives Mentorship",
             "Gender and Youth Agency Index (GYAI) Assessment"
         ],
         "Pillar 3: Integral Ecology and Community Resilience": [
             "Climate Change Awareness Campaigns",
             "Laudato Si' Formation & Ecological Retreats",
-            "Sustainable Agriculture & Climate-Smart Farming",
-            "Kitchen Gardens & Nutrition Programs"
+            "Sustainable Agriculture & Climate-Smart Farming Training",
+            "Kitchen Gardens & Community Nutrition Programs"
         ],
         "Pillar 4: Institutional Capacity Strengthening and Sustainability": [
-            "Staff Development & Performance Management",
-            "Financial Resource Mobilization & CSR",
+            "Staff Development & Performance Management Reviews",
+            "Financial Resource Mobilization & CSR Partnerships",
             "Governance & M&E Systems Strengthening",
-            "Internal Income-Generating Activities"
+            "Internal Income-Generating Activities Development"
         ]
     }
 
@@ -141,6 +151,7 @@ elif menu == t["strat"]:
             submission_date = st.date_input("Submission Date / Date de soumission", value=date.today())
             
         selected_pillar = st.selectbox(t["pillar"], list(pillars_data.keys()))
+        # Les activités affichées changent dynamiquement selon le pilier sélectionné
         selected_activity = st.selectbox("Core Activity / Activité clé", pillars_data[selected_pillar])
         
         col3, col4 = st.columns(2)
@@ -186,7 +197,6 @@ elif menu == t["dash"]:
                 st.metric(label="Total Reports", value=len(df))
                 st.dataframe(df, use_container_width=True)
                 
-                # Option de téléchargement CSV
                 csv_data = df.to_csv(index=False).encode("utf-8")
                 st.download_button("Download Data as CSV", data=csv_data, file_name="juc_reports.csv", mime="text/csv")
         except Exception as e:
