@@ -421,3 +421,4 @@ elif menu == t["admin"]:
                 conn.commit()
             st.warning("Database completely cleared.")
             st.rerun()
+            
