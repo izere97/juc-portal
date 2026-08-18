@@ -10,7 +10,7 @@ import streamlit as st
 # --- CONFIGURATION ---
 st.set_page_config(page_title="JUC Portal", layout="wide")
 
-# --- TRADUCTIONS ---
+# --- TRANSLATIONS ---
 def get_translations():
     return {
         "English": {"title": "JUC Portal", "weekly": "Weekly Report", "strat": "Strategic Pillar Report", "dept": "Department", "submit": "Submit", "lang": "Language", "pillar": "Strategic Pillar", "dash": "📊 Bubble Dashboard", "admin": "⚙️ Admin"},
@@ -21,12 +21,12 @@ def get_translations():
         "Spanish": {"title": "Portal JUC", "weekly": "Informe Semanal", "strat": "Informe de Pilar Estratégico", "dept": "Departamento", "submit": "Enviar", "lang": "Idioma", "pillar": "Pilar Estratégico", "dash": "📊 Panel de Burbujas", "admin": "⚙️ Panel"}
     }
 
-# --- INITIALISATION ---
+# --- INITIALIZATION ---
 if "lang" not in st.session_state: st.session_state.lang = "English"
 trans = get_translations()
 engine = create_engine(st.secrets["DATABASE_URL"]) if "DATABASE_URL" in st.secrets else None
 
-# --- CHARGEMENT AUTOMATIQUE DE L'IMAGE DE FOND ---
+# --- AUTOMATIC BACKGROUND IMAGE LOADING ---
 default_bg_name = "background.jpg"
 if "bg_base64" not in st.session_state or not st.session_state.bg_base64:
     if os.path.exists(default_bg_name):
@@ -35,7 +35,7 @@ if "bg_base64" not in st.session_state or not st.session_state.bg_base64:
     else:
         st.session_state.bg_base64 = ""
 
-# --- STRUCTURE DE LA BASE DE DONNÉES ---
+# --- DATABASE STRUCTURE ---
 if engine:
     try:
         with engine.connect() as conn:
@@ -58,7 +58,7 @@ if engine:
             conn.execute(text("ALTER TABLE juc_reports ADD COLUMN IF NOT EXISTS challenges TEXT;"))
             conn.commit()
     except Exception as e:
-        st.error(f"Erreur d'initialisation de la base de données : {e}")
+        st.error(f"Database initialization error: {e}")
 
 # --- UI & SIDEBAR ---
 st.sidebar.subheader(trans[st.session_state.lang]["lang"])
@@ -114,7 +114,7 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- SÉCURITÉ MOT DE PASSE ---
+# --- PASSWORD SECURITY ---
 password_input = st.sidebar.text_input("Password", type="password")
 if password_input != "JUC2026Secure":
     st.warning("Access Restricted. Please enter the secure password in the sidebar.")
@@ -123,25 +123,25 @@ if password_input != "JUC2026Secure":
 # --- NAVIGATION ---
 menu = st.sidebar.radio(t["title"], [t["weekly"], t["strat"], t["dash"], t["admin"]])
 
-# --- 1. RAPPORT HEBDOMADAIRE ---
+# --- 1. WEEKLY REPORT ---
 if menu == t["weekly"]:
     st.header(t["weekly"])
-    st.info("Conformément au mémo de la direction, veuillez soumettre votre rapport d'activités pour la semaine ainsi que vos projections pour la semaine prochaine.")
+    st.info("In accordance with management memo, please submit your weekly activity report and your projections for next week.")
     
     with st.form("weekly_memo_form"):
         col1, col2 = st.columns(2)
         with col1:
-            staff_name = st.text_input("Full Name / Nom complet")
+            staff_name = st.text_input("Full Name")
         with col2:
-            submission_date = st.date_input("Submission Date / Date de soumission", value=date.today())
+            submission_date = st.date_input("Submission Date", value=date.today())
             
         dept = st.selectbox(t["dept"], ["Administration", "Finance", "Program management", "Project office", "Communication office", "Front Desk", "Monitoring and Evaluation"])
         
-        completed_activities = st.text_area("Activities completed for the week ending on Friday / Activités réalisées cette semaine")
-        pending_issues = st.text_area("Projection of pending issues to be completed or initiated next week / Projections et dossiers en attente pour la semaine prochaine")
-        challenges = st.text_area("Challenges Encountered / Défis rencontrés")
+        completed_activities = st.text_area("Activities completed for the week ending on Friday")
+        pending_issues = st.text_area("Projection of pending issues to be completed or initiated next week")
+        challenges = st.text_area("Challenges Encountered")
         
-        doc = st.file_uploader("Upload supporting document / Document justificatif", type=['pdf', 'jpg', 'png', 'docx'])
+        doc = st.file_uploader("Upload supporting document", type=['pdf', 'jpg', 'png', 'docx'])
         
         if st.form_submit_button(t["submit"]):
             if not staff_name or not completed_activities:
@@ -169,13 +169,13 @@ if menu == t["weekly"]:
                     conn.commit()
                 st.success("Weekly report submitted successfully!")
 
-# --- 2. RAPPORT PAR PILIER STRATÉGIQUE ---
+# --- 2. STRATEGIC PILLAR REPORT ---
 elif menu == t["strat"]:
     st.header(t["strat"])
-    st.markdown("Veuillez sélectionner le pilier stratégique concerné pour accéder à ses objectifs et activités spécifiques.")
+    st.markdown("Please select the relevant strategic pillar to access its specific objectives and activities.")
 
     chosen_pillar = st.selectbox(
-        "Select Strategic Pillar / Sélectionnez le Pilier Stratégique",
+        "Select Strategic Pillar",
         [
             "Pillar 1: Research, Policy Advocacy and Civic Engagement",
             "Pillar 2: Women & Youth Empowerment through Social Innovation and Entrepreneurship",
@@ -187,14 +187,14 @@ elif menu == t["strat"]:
 
     if chosen_pillar.startswith("Pillar 1"):
         with st.form("form_pillar_1"):
-            staff_name = st.text_input("Full Name / Nom complet", key="p1_name")
+            staff_name = st.text_input("Full Name", key="p1_name")
             submission_date = st.date_input("Submission Date", value=date.today(), key="p1_date")
             selected_activity = st.selectbox("Core Activity", ["Obj 1.1 - Publication Basic Needs Basket", "Obj 1.2 - Youth Life-skills", "Obj 1.3 - AHAPPY Program"], key="p1_act")
             quantitative_metrics = st.text_input("Quantitative Metrics", key="p1_qm")
             beneficiaries = st.text_input("Beneficiaries", key="p1_ben")
-            completed_activities = st.text_area("Progress Details / Activités réalisées", key="p1_det")
-            pending_issues = st.text_area("Pending / Projections semaine prochaine", key="p1_pend")
-            challenges = st.text_area("Challenges / Défis", key="p1_chal")
+            completed_activities = st.text_area("Progress Details", key="p1_det")
+            pending_issues = st.text_area("Pending / Projections for next week", key="p1_pend")
+            challenges = st.text_area("Challenges", key="p1_chal")
             if st.form_submit_button(t["submit"]):
                 if engine:
                     with engine.connect() as conn:
@@ -211,14 +211,14 @@ elif menu == t["strat"]:
                     st.success("Submitted successfully!")
     elif chosen_pillar.startswith("Pillar 2"):
         with st.form("form_pillar_2"):
-            staff_name = st.text_input("Full Name / Nom complet", key="p2_name")
+            staff_name = st.text_input("Full Name", key="p2_name")
             submission_date = st.date_input("Submission Date", value=date.today(), key="p2_date")
             selected_activity = st.selectbox("Core Activity", ["Obj 2.1 - Social innovation incubation", "Obj 2.1 - Financial literacy"], key="p2_act")
             quantitative_metrics = st.text_input("Quantitative Metrics", key="p2_qm")
             beneficiaries = st.text_input("Beneficiaries", key="p2_ben")
-            completed_activities = st.text_area("Progress Details / Activités réalisées", key="p2_det")
-            pending_issues = st.text_area("Pending / Projections semaine prochaine", key="p2_pend")
-            challenges = st.text_area("Challenges / Défis", key="p2_chal")
+            completed_activities = st.text_area("Progress Details", key="p2_det")
+            pending_issues = st.text_area("Pending / Projections for next week", key="p2_pend")
+            challenges = st.text_area("Challenges", key="p2_chal")
             if st.form_submit_button(t["submit"]):
                 if engine:
                     with engine.connect() as conn:
@@ -235,14 +235,14 @@ elif menu == t["strat"]:
                     st.success("Submitted successfully!")
     elif chosen_pillar.startswith("Pillar 3"):
         with st.form("form_pillar_3"):
-            staff_name = st.text_input("Full Name / Nom complet", key="p3_name")
+            staff_name = st.text_input("Full Name", key="p3_name")
             submission_date = st.date_input("Submission Date", value=date.today(), key="p3_date")
             selected_activity = st.selectbox("Core Activity", ["Obj 3.1 - Climate change awareness", "Obj 3.2 - Sustainable agriculture"], key="p3_act")
             quantitative_metrics = st.text_input("Quantitative Metrics", key="p3_qm")
             beneficiaries = st.text_input("Beneficiaries", key="p3_ben")
-            completed_activities = st.text_area("Progress Details / Activités réalisées", key="p3_det")
-            pending_issues = st.text_area("Pending / Projections semaine prochaine", key="p3_pend")
-            challenges = st.text_area("Challenges / Défis", key="p3_chal")
+            completed_activities = st.text_area("Progress Details", key="p3_det")
+            pending_issues = st.text_area("Pending / Projections for next week", key="p3_pend")
+            challenges = st.text_area("Challenges", key="p3_chal")
             if st.form_submit_button(t["submit"]):
                 if engine:
                     with engine.connect() as conn:
@@ -259,14 +259,14 @@ elif menu == t["strat"]:
                     st.success("Submitted successfully!")
     elif chosen_pillar.startswith("Pillar 4"):
         with st.form("form_pillar_4"):
-            staff_name = st.text_input("Full Name / Nom complet", key="p4_name")
+            staff_name = st.text_input("Full Name", key="p4_name")
             submission_date = st.date_input("Submission Date", value=date.today(), key="p4_date")
             selected_activity = st.selectbox("Core Activity", ["Obj 4.1 - Staff capacity building", "Obj 4.2 - Corporate partnerships"], key="p4_act")
             quantitative_metrics = st.text_input("Quantitative Metrics", key="p4_qm")
             beneficiaries = st.text_input("Beneficiaries", key="p4_ben")
-            completed_activities = st.text_area("Progress Details / Activités réalisées", key="p4_det")
-            pending_issues = st.text_area("Pending / Projections semaine prochaine", key="p4_pend")
-            challenges = st.text_area("Challenges / Défis", key="p4_chal")
+            completed_activities = st.text_area("Progress Details", key="p4_det")
+            pending_issues = st.text_area("Pending / Projections for next week", key="p4_pend")
+            challenges = st.text_area("Challenges", key="p4_chal")
             if st.form_submit_button(t["submit"]):
                 if engine:
                     with engine.connect() as conn:
@@ -282,24 +282,24 @@ elif menu == t["strat"]:
                         conn.commit()
                     st.success("Submitted successfully!")
 
-# --- 3. DASHBOARD SOUS FORME DE BULLES & EXPORTS (EXCEL & WORD) ---
+# --- 3. BUBBLE DASHBOARD & EXPORTS (EXCEL & WORD) ---
 elif menu == t["dash"]:
     st.header(t["dash"])
-    st.markdown("Vue d'ensemble, exportations globales et consultation détaillée par département/pilier.")
+    st.markdown("Overview, global exports, and detailed view by department/pillar.")
     
     if engine:
         try:
             df = pd.read_sql("SELECT * FROM juc_reports", engine)
             
-            # --- EXPORT EXCEL GLOBAL ---
+            # --- GLOBAL EXCEL EXPORT ---
             if not df.empty:
-                st.subheader("📥 Exportation Globale des Données")
+                st.subheader("📥 Global Data Export")
                 excel_buffer = io.BytesIO()
                 with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
                     df.to_excel(writer, index=False, sheet_name='JUC_Reports')
                 
                 st.download_button(
-                    label="📊 Télécharger toutes les données en Excel (.xlsx)",
+                    label="📊 Download all data as Excel (.xlsx)",
                     data=excel_buffer.getvalue(),
                     file_name=f"JUC_Global_Data_Export_{date.today()}.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -307,126 +307,126 @@ elif menu == t["dash"]:
                 )
                 st.markdown("---")
 
-            # --- SOMMET : BULLE ADMIN ---
+            # --- TOP: ADMIN BUBBLE ---
             st.markdown("""
                 <div class="bubble-admin">
-                    <h3>🏛️ Administration & Direction</h3>
-                    <p>Supervision générale et pilotage institutionnel</p>
+                    <h3>🏛️ Administration & Management</h3>
+                    <p>General supervision and institutional steering</p>
                 </div>
             """, unsafe_allow_html=True)
             
-            # --- NIVEAU INTERMÉDIAIRE : LES 3 COLONNES ---
+            # --- INTERMEDIATE LEVEL: THE 3 COLUMNS ---
             col_left, col_mid, col_right = st.columns(3)
             
             with col_left:
                 st.markdown("""
                     <div class="bubble-card">
                         <h4>💼 Finance & Admin</h4>
-                        <p>Gestion financière & Opérations</p>
+                        <p>Financial management & Operations</p>
                     </div>
                 """, unsafe_allow_html=True)
                 fin_count = len(df[df['category'] == 'Finance']) if not df.empty and 'category' in df.columns else 0
-                st.metric("Rapports Finance", fin_count)
+                st.metric("Finance Reports", fin_count)
             
             with col_mid:
                 st.markdown("""
                     <div class="bubble-card">
                         <h4>📊 Program Management</h4>
-                        <p>Coordination des programmes & M&E</p>
+                        <p>Program coordination & M&E</p>
                     </div>
                 """, unsafe_allow_html=True)
                 prog_count = len(df[df['category'].str.contains('Program|Monitoring', case=False, na=False)]) if not df.empty and 'category' in df.columns else 0
-                st.metric("Rapports Programmes", prog_count)
+                st.metric("Program Reports", prog_count)
             
             with col_right:
                 st.markdown("""
                     <div class="bubble-card">
-                        <h4>🎯 Piliers Stratégiques</h4>
-                        <p>Piliers 1, 2, 3 & 4</p>
+                        <h4>🎯 Strategic Pillars</h4>
+                        <p>Pillars 1, 2, 3 & 4</p>
                     </div>
                 """, unsafe_allow_html=True)
                 strat_count = len(df[df['report_type'] == 'Strategic']) if not df.empty and 'report_type' in df.columns else 0
-                st.metric("Rapports Piliers", strat_count)
+                st.metric("Pillar Reports", strat_count)
 
             st.markdown("---")
             
-            # --- SECTION DÉTAILS & EXPORT WORD (RÉSUMÉ GLOBAL OU SPÉCIFIQUE) ---
-            st.subheader("🔍 Consultation détaillée et Rapports Word")
+            # --- DETAILS & WORD EXPORT SECTION (GLOBAL SUMMARY OR SPECIFIC) ---
+            st.subheader("🔍 Detailed Consultation and Word Reports")
             
             if not df.empty:
-                export_mode = st.radio("Mode d'affichage et d'export Word :", ["Filtrer par Département ou Pilier", "Résumé Global de tous les départements (1 page de synthèse + détails)"])
+                export_mode = st.radio("Display and Word Export Mode:", ["Filter by Department or Pillar", "Global Summary of all departments (Synthesis + full details)"])
                 
-                if export_mode == "Filtrer par Département ou Pilier":
+                if export_mode == "Filter by Department or Pillar":
                     all_categories = df['category'].dropna().unique().tolist()
-                    selected_cat_view = st.selectbox("Choisir le département ou le pilier :", all_categories)
+                    selected_cat_view = st.selectbox("Choose department or pillar:", all_categories)
                     
                     filtered_df = df[df['category'] == selected_cat_view]
-                    st.markdown(f"### Rapports pour : **{selected_cat_view}**")
+                    st.markdown(f"### Reports for: **{selected_cat_view}**")
                     
                     for index, row in filtered_df.iterrows():
                         with st.expander(f"👤 {row.get('staff_name', 'N/A')} — Date: {row.get('submission_date', 'N/A')} ({row.get('sub_category', '')})"):
-                            st.markdown(f"**✅ Activités réalisées :**\n{row.get('completed_activities', 'N/A')}")
-                            st.markdown(f"**⏳ Projections / En attente :**\n{row.get('pending_issues', 'N/A')}")
-                            st.markdown(f"**⚠️ Défis rencontrés :**\n{row.get('challenges', 'N/A')}")
+                            st.markdown(f"**✅ Completed Activities:**\n{row.get('completed_activities', 'N/A')}")
+                            st.markdown(f"**⏳ Projections / Pending:**\n{row.get('pending_issues', 'N/A')}")
+                            st.markdown(f"**⚠️ Challenges Encountered:**\n{row.get('challenges', 'N/A')}")
                     
                     st.markdown("---")
                     
-                    if st.button(f"Générer le document Word pour {selected_cat_view}"):
+                    if st.button(f"Generate Word document for {selected_cat_view}"):
                         doc = Document()
-                        doc.add_heading(f"Rapport JUC - {selected_cat_view}", 0)
-                        doc.add_paragraph(f"Date de génération : {date.today().strftime('%Y-%m-%d')}")
-                        doc.add_heading("Détail des activités par département", level=1)
+                        doc.add_heading(f"JUC Report - {selected_cat_view}", 0)
+                        doc.add_paragraph(f"Generation date: {date.today().strftime('%Y-%m-%d')}")
+                        doc.add_heading("Activity details by department", level=1)
                         
                         for index, row in filtered_df.iterrows():
                             p = doc.add_paragraph()
-                            p.add_run(f"Collaborateur : {row.get('staff_name', 'N/A')}").bold = True
-                            p.add_run(f"\nDate : {row.get('submission_date', 'N/A')}\n")
-                            p.add_run(f"Activités réalisées :\n{row.get('completed_activities', 'N/A')}\n")
-                            p.add_run(f"Projections :\n{row.get('pending_issues', 'N/A')}\n")
-                            p.add_run(f"Défis :\n{row.get('challenges', 'N/A')}\n\n")
+                            p.add_run(f"Staff Member: {row.get('staff_name', 'N/A')}").bold = True
+                            p.add_run(f"\nDate: {row.get('submission_date', 'N/A')}\n")
+                            p.add_run(f"Completed Activities:\n{row.get('completed_activities', 'N/A')}\n")
+                            p.add_run(f"Projections:\n{row.get('pending_issues', 'N/A')}\n")
+                            p.add_run(f"Challenges:\n{row.get('challenges', 'N/A')}\n\n")
                         
                         buffer = io.BytesIO()
                         doc.save(buffer)
                         buffer.seek(0)
                         
                         st.download_button(
-                            label=f"📥 Télécharger le Word pour {selected_cat_view}",
+                            label=f"📥 Download Word for {selected_cat_view}",
                             data=buffer,
-                            file_name=f"JUC_Rapport_{selected_cat_view.replace(' ', '_')}_{date.today()}.docx",
+                            file_name=f"JUC_Report_{selected_cat_view.replace(' ', '_')}_{date.today()}.docx",
                             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                             use_container_width=True
                         )
                 
                 else:
-                    # MODE RÉSUMÉ GLOBAL
-                    st.markdown("### 📋 Aperçu du Résumé Global (Tous les Départements)")
+                    # GLOBAL SUMMARY MODE
+                    st.markdown("### 📋 Global Summary Overview (All Departments)")
                     
                     summary_counts = df['category'].value_counts().reset_index()
-                    summary_counts.columns = ['Département / Pilier', 'Nombre de Rapports']
+                    summary_counts.columns = ['Department / Pillar', 'Number of Reports']
                     st.dataframe(summary_counts, use_container_width=True)
                     
                     st.markdown("---")
-                    if st.button("Générer le document Word : Résumé Global consolidé"):
+                    if st.button("Generate Word Document: Consolidated Global Summary"):
                         doc = Document()
-                        doc.add_heading("Rapport Consolidé JUC - Résumé Global", 0)
-                        doc.add_paragraph(f"Date de génération : {date.today().strftime('%Y-%m-%d')}")
+                        doc.add_heading("JUC Consolidated Report - Global Summary", 0)
+                        doc.add_paragraph(f"Generation date: {date.today().strftime('%Y-%m-%d')}")
                         
-                        # Section Détails Complets par Département (avec contenu détaillé au lieu du nombre de rapports)
-                        doc.add_heading("1. Détails complets des activités par département et pilier", level=1)
+                        # Full details section by department
+                        doc.add_heading("1. Complete activity details by department and pillar", level=1)
                         
                         for cat in df['category'].dropna().unique():
-                            doc.add_heading(f"Département / Pilier : {cat}", level=2)
+                            doc.add_heading(f"Department / Pillar: {cat}", level=2)
                             cat_rows = df[df['category'] == cat]
                             
                             for index, row in cat_rows.iterrows():
                                 p = doc.add_paragraph()
-                                p.add_run(f"Collaborateur : {row.get('staff_name', 'N/A')}").bold = True
-                                p.add_run(f" — Date : {row.get('submission_date', 'N/A')}\n")
-                                p.add_run(f"Activités réalisées :\n{row.get('completed_activities', 'N/A')}\n")
+                                p.add_run(f"Staff Member: {row.get('staff_name', 'N/A')}").bold = True
+                                p.add_run(f" — Date: {row.get('submission_date', 'N/A')}\n")
+                                p.add_run(f"Completed Activities:\n{row.get('completed_activities', 'N/A')}\n")
                                 if row.get('pending_issues'):
-                                    p.add_run(f"Projections / En attente :\n{row.get('pending_issues', 'N/A')}\n")
+                                    p.add_run(f"Projections / Pending:\n{row.get('pending_issues', 'N/A')}\n")
                                 if row.get('challenges'):
-                                    p.add_run(f"Défis rencontrés :\n{row.get('challenges', 'N/A')}\n")
+                                    p.add_run(f"Challenges Encountered:\n{row.get('challenges', 'N/A')}\n")
                                 p.add_run("\n")
                         
                         buffer = io.BytesIO()
@@ -434,17 +434,17 @@ elif menu == t["dash"]:
                         buffer.seek(0)
                         
                         st.download_button(
-                            label="📥 Télécharger le Rapport Word Consolidé (.docx)",
+                            label="📥 Download Consolidated Word Report (.docx)",
                             data=buffer,
-                            file_name=f"JUC_Resume_Global_{date.today()}.docx",
+                            file_name=f"JUC_Global_Summary_{date.today()}.docx",
                             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                             use_container_width=True
                         )
             else:
-                st.info("Aucune donnée enregistrée pour le moment.")
+                st.info("No records found at the moment.")
                 
         except Exception as e:
-            st.error(f"Erreur lors du chargement des bulles : {e}")
+            st.error(f"Error loading dashboard: {e}")
 
 # --- 4. ADMIN ---
 elif menu == t["admin"]:
@@ -457,10 +457,10 @@ elif menu == t["admin"]:
             else:
                 st.dataframe(df, use_container_width=True)
                 
-                st.subheader("Delete a specific record by ID / Supprimer un enregistrement par ID")
-                report_id_to_delete = st.number_input("Enter ID to delete / Entrez l'ID à supprimer", min_value=0, step=1)
+                st.subheader("Delete a specific record by ID")
+                report_id_to_delete = st.number_input("Enter ID to delete", min_value=0, step=1)
                 
-                if st.button("Delete Selected Row / Supprimer cette ligne"):
+                if st.button("Delete Selected Row"):
                     with engine.connect() as conn:
                         conn.execute(text("DELETE FROM juc_reports WHERE id = :id"), {"id": report_id_to_delete})
                         conn.commit()
@@ -470,7 +470,7 @@ elif menu == t["admin"]:
             st.info("Loading administration tools...")
             
         st.markdown("---")
-        if st.button("🗑️ DELETE ALL / TOUT SUPPRIMER (Total Reset)"):
+        if st.button("🗑️ DELETE ALL (Total Reset)"):
             with engine.connect() as conn:
                 conn.execute(text("DELETE FROM juc_reports"))
                 conn.commit()
