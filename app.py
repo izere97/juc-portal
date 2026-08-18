@@ -24,7 +24,7 @@ if "lang" not in st.session_state: st.session_state.lang = "English"
 trans = get_translations()
 engine = create_engine(st.secrets["DATABASE_URL"]) if "DATABASE_URL" in st.secrets else None
 
-# --- GESTION PERSISTANTE DE L'IMAGE DE FOND ---
+# --- CHARGEMENT AUTOMATIQUE DE L'IMAGE DE FOND DEPUIS LE CODE ---
 default_bg_name = "generated_image-width=4096_height=3058.jpg"
 
 if "bg_base64" not in st.session_state:
@@ -58,11 +58,6 @@ if engine:
 st.sidebar.subheader(trans[st.session_state.lang]["lang"])
 st.session_state.lang = st.sidebar.selectbox("", ["English", "Français", "Kinyarwanda", "Dutch", "Italian", "Spanish"])
 t = trans[st.session_state.lang]
-
-bg_file = st.sidebar.file_uploader("🖼️ Changer l'image de fond (Optionnel)", type=["jpg", "png", "jpeg"])
-
-if bg_file:
-    st.session_state.bg_base64 = base64.b64encode(bg_file.read()).decode()
 
 bg_css = f"url(data:image/jpeg;base64,{st.session_state.bg_base64})" if st.session_state.bg_base64 else "none"
 
