@@ -43,7 +43,7 @@ if engine:
     except Exception as e:
         st.error(f"Erreur d'initialisation de la base de données : {e}")
 
-# --- UI & FULL SCREEN BACKGROUND (Bien visible) ---
+# --- UI & FULL SCREEN BACKGROUND (Optimisé pour une visibilité parfaite) ---
 st.sidebar.subheader(trans[st.session_state.lang]["lang"])
 st.session_state.lang = st.sidebar.selectbox("", ["English", "Français", "Kinyarwanda", "Dutch", "Italian", "Spanish"])
 t = trans[st.session_state.lang]
@@ -54,11 +54,17 @@ if bg_file:
     st.markdown(f"""
         <style>
         .stApp {{
-            background: linear-gradient(rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.35)), url(data:image/jpeg;base64,{b64});
+            background: linear-gradient(rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.15)), url(data:image/jpeg;base64,{b64});
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
+        }}
+        /* Rendre les formulaires et blocs semi-transparents pour laisser pleinement voir le fond */
+        div[data-testid="stForm"] {{
+            background-color: rgba(255, 255, 255, 0.85) !important;
+            padding: 20px;
+            border-radius: 10px;
         }}
         </style>
     """, unsafe_allow_html=True)
