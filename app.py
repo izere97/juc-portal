@@ -1,5 +1,6 @@
 import base64
 from datetime import date, datetime
+import os
 import pandas as pd
 from sqlalchemy import create_engine, text
 import streamlit as st
@@ -23,6 +24,16 @@ if "lang" not in st.session_state: st.session_state.lang = "English"
 trans = get_translations()
 engine = create_engine(st.secrets["DATABASE_URL"]) if "DATABASE_URL" in st.secrets else None
 
+# --- GESTION PERSISTANTE DE L'IMAGE DE FOND ---
+default_bg_name = "generated_image-width=4096_height=3058.jpg"
+
+if "bg_base64" not in st.session_state:
+    if os.path.exists(default_bg_name):
+        with open(default_bg_name, "rb") as image_file:
+            st.session_state.bg_base64 = base64.b64encode(image_file.read()).decode()
+    else:
+        st.session_state.bg_base64 = ""
+
 # --- CRÉATION AUTOMATIQUE DE LA TABLE ---
 if engine:
     try:
@@ -43,19 +54,17 @@ if engine:
     except Exception as e:
         st.error(f"Erreur d'initialisation de la base de données : {e}")
 
-# --- UI & FULL SCREEN BACKGROUND (Optimisé pour la visibilité) ---
+# --- UI & SIDEBAR ---
 st.sidebar.subheader(trans[st.session_state.lang]["lang"])
 st.session_state.lang = st.sidebar.selectbox("", ["English", "Français", "Kinyarwanda", "Dutch", "Italian", "Spanish"])
 t = trans[st.session_state.lang]
 
-default_bg_name = "generated_image-width=4096_height=3058.jpg"
 bg_file = st.sidebar.file_uploader("🖼️ Changer l'image de fond (Optionnel)", type=["jpg", "png", "jpeg"])
 
 if bg_file:
-    b64 = base64.b64encode(bg_file.read()).decode()
-    bg_css = f"url(data:image/jpeg;base64,{b64})"
-else:
-    bg_css = f"url('{default_bg_name}')"
+    st.session_state.bg_base64 = base64.b64encode(bg_file.read()).decode()
+
+bg_css = f"url(data:image/jpeg;base64,{st.session_state.bg_base64})" if st.session_state.bg_base64 else "none"
 
 st.markdown(f"""
     <style>
@@ -67,16 +76,16 @@ st.markdown(f"""
         background-attachment: fixed;
     }}
     
-    /* Conteneur principal bien opaque pour une lisibilité parfaite */
+    /* Conteneur principal bien opaque */
     .main .block-container {{
-        background: rgba(255, 255, 255, 0.92);
+        background: rgba(255, 255, 255, 0.93);
         padding: 2.5rem;
         border-radius: 15px;
         backdrop-filter: blur(8px);
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     }}
     
-    /* Formulaires très lisibles sur fond clair opaque */
+    /* Formulaires très lisibles */
     div[data-testid="stForm"] {{
         background: rgba(255, 255, 255, 0.98) !important;
         padding: 25px;
@@ -85,7 +94,7 @@ st.markdown(f"""
         border: 1px solid rgba(226, 232, 240, 1);
     }}
 
-    /* Forcer la couleur des textes en noir/sombre pour un contraste maximal */
+    /* Textes en noir/sombre pour un contraste parfait */
     h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown {{
         color: #0f172a !important;
     }}
