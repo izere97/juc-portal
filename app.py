@@ -33,11 +33,10 @@ if "bg_base64" not in st.session_state or not st.session_state.bg_base64:
     else:
         st.session_state.bg_base64 = ""
 
-# --- MIGRATION AUTOMATIQUE DES COLONNES DANS LA BASE DE DONNÉES ---
+# --- STRUCTURE DE LA BASE DE DONNÉES SANS LA COLONNE DETAILS ---
 if engine:
     try:
         with engine.connect() as conn:
-            # 1. Création de la table si elle n'existe pas
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS juc_reports (
                     id SERIAL PRIMARY KEY,
@@ -47,16 +46,18 @@ if engine:
                     report_type TEXT,
                     category TEXT,
                     sub_category TEXT,
-                    details TEXT
+                    completed_activities TEXT,
+                    pending_issues TEXT,
+                    challenges TEXT
                 );
             """))
-            # 2. Ajout dynamique des colonnes manquantes si la table existait déjà
+            # S'assure que les colonnes existent si la table était déjà créée
             conn.execute(text("ALTER TABLE juc_reports ADD COLUMN IF NOT EXISTS completed_activities TEXT;"))
             conn.execute(text("ALTER TABLE juc_reports ADD COLUMN IF NOT EXISTS pending_issues TEXT;"))
             conn.execute(text("ALTER TABLE juc_reports ADD COLUMN IF NOT EXISTS challenges TEXT;"))
             conn.commit()
     except Exception as e:
-        st.error(f"Erreur de mise à jour de la base de données : {e}")
+        st.error(f"Erreur d'initialisation de la base de données : {e}")
 
 # --- UI & SIDEBAR ---
 st.sidebar.subheader(trans[st.session_state.lang]["lang"])
@@ -149,11 +150,11 @@ if menu == t["weekly"]:
                     conn.execute(text("""
                         INSERT INTO juc_reports (
                             submission_date, staff_name, report_type, category, sub_category, 
-                            completed_activities, pending_issues, challenges, details
+                            completed_activities, pending_issues, challenges
                         ) 
                         VALUES (
                             :sub_date, :n, 'Weekly', :c, :sub, 
-                            :comp, :pend, :chal, :d
+                            :comp, :pend, :chal
                         )
                     """), {
                         "sub_date": submission_date,
@@ -162,8 +163,7 @@ if menu == t["weekly"]:
                         "sub": "Weekly Memo Report",
                         "comp": completed_activities,
                         "pend": pending_issues,
-                        "chal": challenges,
-                        "d": f"Accomplished: {completed_activities} || Pending/Next week: {pending_issues} || Challenges: {challenges}"
+                        "chal": challenges
                     })
                     conn.commit()
                 st.success("Weekly report submitted successfully!")
@@ -191,20 +191,20 @@ elif menu == t["strat"]:
             selected_activity = st.selectbox("Core Activity", ["Obj 1.1 - Publication Basic Needs Basket", "Obj 1.2 - Youth Life-skills", "Obj 1.3 - AHAPPY Program"], key="p1_act")
             quantitative_metrics = st.text_input("Quantitative Metrics", key="p1_qm")
             beneficiaries = st.text_input("Beneficiaries", key="p1_ben")
-            details = st.text_area("Progress Details", key="p1_det")
-            challenges = st.text_area("Challenges", key="p1_chal")
+            completed_activities = st.text_area("Progress Details / Activités réalisées", key="p1_det")
+            pending_issues = st.text_area("Pending / Projections semaine prochaine", key="p1_pend")
+            challenges = st.text_area("Challenges / Défis", key="p1_chal")
             if st.form_submit_button(t["submit"]):
                 if engine:
                     with engine.connect() as conn:
                         conn.execute(text("""
                             INSERT INTO juc_reports (
                                 submission_date, staff_name, report_type, category, sub_category, 
-                                completed_activities, challenges, details
-                            ) VALUES (:sub_date, :n, 'Strategic', :c, :sub, :comp, :chal, :d)
+                                completed_activities, pending_issues, challenges
+                            ) VALUES (:sub_date, :n, 'Strategic', :c, :sub, :comp, :pend, :chal)
                         """), {
-                            "sub_date": submission_date, "n": staff_name, "c": chosen_pillar, "sub": selected_activity,
-                            "comp": details, "chal": challenges,
-                            "d": f"Metrics: {quantitative_metrics} | Beneficiaries: {beneficiaries} || {details}"
+                            "sub_date": submission_date, "n": staff_name, "c": chosen_pillar, "sub": f"{selected_activity} | Metrics: {quantitative_metrics} | Ben: {beneficiaries}",
+                            "comp": completed_activities, "pend": pending_issues, "chal": challenges
                         })
                         conn.commit()
                     st.success("Submitted successfully!")
@@ -215,19 +215,20 @@ elif menu == t["strat"]:
             selected_activity = st.selectbox("Core Activity", ["Obj 2.1 - Social innovation incubation", "Obj 2.1 - Financial literacy"], key="p2_act")
             quantitative_metrics = st.text_input("Quantitative Metrics", key="p2_qm")
             beneficiaries = st.text_input("Beneficiaries", key="p2_ben")
-            details = st.text_area("Progress Details", key="p2_det")
+            completed_activities = st.text_area("Progress Details / Activités réalisées", key="p2_det")
+            pending_issues = st.text_area("Pending / Projections semaine prochaine", key="p2_pend")
+            challenges = st.text_area("Challenges / Défis", key="p2_chal")
             if st.form_submit_button(t["submit"]):
                 if engine:
                     with engine.connect() as conn:
                         conn.execute(text("""
                             INSERT INTO juc_reports (
                                 submission_date, staff_name, report_type, category, sub_category, 
-                                completed_activities, details
-                            ) VALUES (:sub_date, :n, 'Strategic', :c, :sub, :comp, :d)
+                                completed_activities, pending_issues, challenges
+                            ) VALUES (:sub_date, :n, 'Strategic', :c, :sub, :comp, :pend, :chal)
                         """), {
-                            "sub_date": submission_date, "n": staff_name, "c": chosen_pillar, "sub": selected_activity,
-                            "comp": details,
-                            "d": f"Metrics: {quantitative_metrics} | Beneficiaries: {beneficiaries} || {details}"
+                            "sub_date": submission_date, "n": staff_name, "c": chosen_pillar, "sub": f"{selected_activity} | Metrics: {quantitative_metrics} | Ben: {beneficiaries}",
+                            "comp": completed_activities, "pend": pending_issues, "chal": challenges
                         })
                         conn.commit()
                     st.success("Submitted successfully!")
@@ -238,19 +239,20 @@ elif menu == t["strat"]:
             selected_activity = st.selectbox("Core Activity", ["Obj 3.1 - Climate change awareness", "Obj 3.2 - Sustainable agriculture"], key="p3_act")
             quantitative_metrics = st.text_input("Quantitative Metrics", key="p3_qm")
             beneficiaries = st.text_input("Beneficiaries", key="p3_ben")
-            details = st.text_area("Progress Details", key="p3_det")
+            completed_activities = st.text_area("Progress Details / Activités réalisées", key="p3_det")
+            pending_issues = st.text_area("Pending / Projections semaine prochaine", key="p3_pend")
+            challenges = st.text_area("Challenges / Défis", key="p3_chal")
             if st.form_submit_button(t["submit"]):
                 if engine:
                     with engine.connect() as conn:
                         conn.execute(text("""
                             INSERT INTO juc_reports (
                                 submission_date, staff_name, report_type, category, sub_category, 
-                                completed_activities, details
-                            ) VALUES (:sub_date, :n, 'Strategic', :c, :sub, :comp, :d)
+                                completed_activities, pending_issues, challenges
+                            ) VALUES (:sub_date, :n, 'Strategic', :c, :sub, :comp, :pend, :chal)
                         """), {
-                            "sub_date": submission_date, "n": staff_name, "c": chosen_pillar, "sub": selected_activity,
-                            "comp": details,
-                            "d": f"Metrics: {quantitative_metrics} | Beneficiaries: {beneficiaries} || {details}"
+                            "sub_date": submission_date, "n": staff_name, "c": chosen_pillar, "sub": f"{selected_activity} | Metrics: {quantitative_metrics} | Ben: {beneficiaries}",
+                            "comp": completed_activities, "pend": pending_issues, "chal": challenges
                         })
                         conn.commit()
                     st.success("Submitted successfully!")
@@ -261,19 +263,20 @@ elif menu == t["strat"]:
             selected_activity = st.selectbox("Core Activity", ["Obj 4.1 - Staff capacity building", "Obj 4.2 - Corporate partnerships"], key="p4_act")
             quantitative_metrics = st.text_input("Quantitative Metrics", key="p4_qm")
             beneficiaries = st.text_input("Beneficiaries", key="p4_ben")
-            details = st.text_area("Progress Details", key="p4_det")
+            completed_activities = st.text_area("Progress Details / Activités réalisées", key="p4_det")
+            pending_issues = st.text_area("Pending / Projections semaine prochaine", key="p4_pend")
+            challenges = st.text_area("Challenges / Défis", key="p4_chal")
             if st.form_submit_button(t["submit"]):
                 if engine:
                     with engine.connect() as conn:
                         conn.execute(text("""
                             INSERT INTO juc_reports (
                                 submission_date, staff_name, report_type, category, sub_category, 
-                                completed_activities, details
-                            ) VALUES (:sub_date, :n, 'Strategic', :c, :sub, :comp, :d)
+                                completed_activities, pending_issues, challenges
+                            ) VALUES (:sub_date, :n, 'Strategic', :c, :sub, :comp, :pend, :chal)
                         """), {
-                            "sub_date": submission_date, "n": staff_name, "c": chosen_pillar, "sub": selected_activity,
-                            "comp": details,
-                            "d": f"Metrics: {quantitative_metrics} | Beneficiaries: {beneficiaries} || {details}"
+                            "sub_date": submission_date, "n": staff_name, "c": chosen_pillar, "sub": f"{selected_activity} | Metrics: {quantitative_metrics} | Ben: {beneficiaries}",
+                            "comp": completed_activities, "pend": pending_issues, "chal": challenges
                         })
                         conn.commit()
                     st.success("Submitted successfully!")
