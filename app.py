@@ -24,7 +24,7 @@ if "lang" not in st.session_state: st.session_state.lang = "English"
 trans = get_translations()
 engine = create_engine(st.secrets["DATABASE_URL"]) if "DATABASE_URL" in st.secrets else None
 
-# --- CHARGEMENT AUTOMATIQUE DE L'IMAGE DE FOND DEPUIS LE CODE ---
+# --- CHARGEMENT AUTOMATIQUE DE L'IMAGE DE FOND ---
 default_bg_name = "generated_image-width=4096_height=3058.jpg"
 
 if "bg_base64" not in st.session_state:
@@ -59,19 +59,21 @@ st.sidebar.subheader(trans[st.session_state.lang]["lang"])
 st.session_state.lang = st.sidebar.selectbox("", ["English", "Français", "Kinyarwanda", "Dutch", "Italian", "Spanish"])
 t = trans[st.session_state.lang]
 
-bg_css = f"url(data:image/jpeg;base64,{st.session_state.bg_base64})" if st.session_state.bg_base64 else "none"
+# Application du fond d'écran plein écran sécurisé
+bg_css = f"url('data:image/jpeg;base64,{st.session_state.bg_base64}')" if st.session_state.bg_base64 else "none"
 
 st.markdown(f"""
     <style>
+    /* Fond de toute la fenêtre du navigateur */
     .stApp {{
-        background: {bg_css};
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
+        background-image: {bg_css} !important;
+        background-size: cover !important;
+        background-position: center center !important;
+        background-repeat: no-repeat !important;
+        background-attachment: fixed !important;
     }}
     
-    /* Conteneur principal bien opaque */
+    /* Conteneur principal semi-transparent pour la lisibilité */
     .main .block-container {{
         background: rgba(255, 255, 255, 0.93);
         padding: 2.5rem;
