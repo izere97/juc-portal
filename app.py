@@ -33,10 +33,11 @@ if "bg_base64" not in st.session_state or not st.session_state.bg_base64:
     else:
         st.session_state.bg_base64 = ""
 
-# --- CRÉATION & MISE À JOUR AUTOMATIQUE DE LA TABLE (AVEC COLONNES DÉDIÉES) ---
+# --- MIGRATION AUTOMATIQUE DES COLONNES DANS LA BASE DE DONNÉES ---
 if engine:
     try:
         with engine.connect() as conn:
+            # 1. Création de la table si elle n'existe pas
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS juc_reports (
                     id SERIAL PRIMARY KEY,
@@ -46,15 +47,16 @@ if engine:
                     report_type TEXT,
                     category TEXT,
                     sub_category TEXT,
-                    completed_activities TEXT,
-                    pending_issues TEXT,
-                    challenges TEXT,
                     details TEXT
                 );
             """))
+            # 2. Ajout dynamique des colonnes manquantes si la table existait déjà
+            conn.execute(text("ALTER TABLE juc_reports ADD COLUMN IF NOT EXISTS completed_activities TEXT;"))
+            conn.execute(text("ALTER TABLE juc_reports ADD COLUMN IF NOT EXISTS pending_issues TEXT;"))
+            conn.execute(text("ALTER TABLE juc_reports ADD COLUMN IF NOT EXISTS challenges TEXT;"))
             conn.commit()
     except Exception as e:
-        st.error(f"Erreur d'initialisation de la base de données : {e}")
+        st.error(f"Erreur de mise à jour de la base de données : {e}")
 
 # --- UI & SIDEBAR ---
 st.sidebar.subheader(trans[st.session_state.lang]["lang"])
@@ -303,7 +305,7 @@ elif menu == t["dash"]:
                         <p>Gestion financière & Opérations</p>
                     </div>
                 """, unsafe_allow_html=True)
-                if not df.empty:
+                if not df.empty and 'category' in df.columns:
                     fin_count = len(df[df['category'] == 'Finance'])
                     st.metric("Rapports Finance", fin_count)
             
@@ -314,7 +316,7 @@ elif menu == t["dash"]:
                         <p>Coordination des programmes & M&E</p>
                     </div>
                 """, unsafe_allow_html=True)
-                if not df.empty:
+                if not df.empty and 'category' in df.columns:
                     prog_count = len(df[df['category'].str.contains('Program|Monitoring', case=False, na=False)])
                     st.metric("Rapports Programmes", prog_count)
             
@@ -325,7 +327,7 @@ elif menu == t["dash"]:
                         <p>Piliers 1, 2, 3 & 4</p>
                     </div>
                 """, unsafe_allow_html=True)
-                if not df.empty:
+                if not df.empty and 'report_type' in df.columns:
                     strat_count = len(df[df['report_type'] == 'Strategic'])
                     st.metric("Rapports Piliers", strat_count)
 
