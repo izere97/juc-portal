@@ -60,10 +60,10 @@ if menu == t["weekly"]:
 elif menu == t["strat"]:
     st.header(t["strat"])
     pillars = [
-        "Pillar 1: Research, Policy Advocacy and Civic Engagement",[cite: 1]
-        "Pillar 2: Women & Youth Empowerment",[cite: 1]
-        "Pillar 3: Integral Ecology",[cite: 1]
-        "Pillar 4: Institutional Capacity"[cite: 1]
+        "Pillar 1: Research, Policy Advocacy and Civic Engagement",
+        "Pillar 2: Women & Youth Empowerment",
+        "Pillar 3: Integral Ecology",
+        "Pillar 4: Institutional Capacity"
     ]
     with st.form("strat"):
         name = st.text_input("Name")
@@ -89,7 +89,6 @@ elif menu == t["admin"]:
     st.header(t["admin"])
     
     if engine:
-        # Affichage rapide pour voir les ID à supprimer
         df = pd.read_sql("SELECT id, date, staff_name, report_type, category FROM juc_reports", engine)
         st.dataframe(df)
         
