@@ -1,7 +1,9 @@
 import base64
 from datetime import date, datetime
+import io
 import os
 import pandas as pd
+from docx import Document
 from sqlalchemy import create_engine, text
 import streamlit as st
 
@@ -33,7 +35,7 @@ if "bg_base64" not in st.session_state or not st.session_state.bg_base64:
     else:
         st.session_state.bg_base64 = ""
 
-# --- STRUCTURE DE LA BASE DE DONNÉES SANS LA COLONNE DETAILS ---
+# --- STRUCTURE DE LA BASE DE DONNÉES ---
 if engine:
     try:
         with engine.connect() as conn:
@@ -51,7 +53,6 @@ if engine:
                     challenges TEXT
                 );
             """))
-            # S'assure que les colonnes existent si la table était déjà créée
             conn.execute(text("ALTER TABLE juc_reports ADD COLUMN IF NOT EXISTS completed_activities TEXT;"))
             conn.execute(text("ALTER TABLE juc_reports ADD COLUMN IF NOT EXISTS pending_issues TEXT;"))
             conn.execute(text("ALTER TABLE juc_reports ADD COLUMN IF NOT EXISTS challenges TEXT;"))
@@ -160,7 +161,7 @@ if menu == t["weekly"]:
                         "sub_date": submission_date,
                         "n": staff_name, 
                         "c": dept, 
-                        "sub": "Weekly Memo Report",
+                        "sub": "JUC weekly report",
                         "comp": completed_activities,
                         "pend": pending_issues,
                         "chal": challenges
@@ -281,10 +282,10 @@ elif menu == t["strat"]:
                         conn.commit()
                     st.success("Submitted successfully!")
 
-# --- 3. DASHBOARD SOUS FORME DE BULLES (ORGANIGRAMME / RÉSEAU) ---
+# --- 3. DASHBOARD SOUS FORME DE BULLES (ORGANIGRAMME / RÉSEAU & DÉTAILS WORD) ---
 elif menu == t["dash"]:
     st.header(t["dash"])
-    st.markdown("Vue d'ensemble sous forme de bulles interactives reproduisant la structure de vos départements et piliers.")
+    st.markdown("Vue d'ensemble et consultation détaillée par département/pilier avec option de téléchargement Word.")
     
     if engine:
         try:
@@ -308,9 +309,8 @@ elif menu == t["dash"]:
                         <p>Gestion financière & Opérations</p>
                     </div>
                 """, unsafe_allow_html=True)
-                if not df.empty and 'category' in df.columns:
-                    fin_count = len(df[df['category'] == 'Finance'])
-                    st.metric("Rapports Finance", fin_count)
+                fin_count = len(df[df['category'] == 'Finance']) if not df.empty and 'category' in df.columns else 0
+                st.metric("Rapports Finance", fin_count)
             
             with col_mid:
                 st.markdown("""
@@ -319,9 +319,8 @@ elif menu == t["dash"]:
                         <p>Coordination des programmes & M&E</p>
                     </div>
                 """, unsafe_allow_html=True)
-                if not df.empty and 'category' in df.columns:
-                    prog_count = len(df[df['category'].str.contains('Program|Monitoring', case=False, na=False)])
-                    st.metric("Rapports Programmes", prog_count)
+                prog_count = len(df[df['category'].str.contains('Program|Monitoring', case=False, na=False)]) if not df.empty and 'category' in df.columns else 0
+                st.metric("Rapports Programmes", prog_count)
             
             with col_right:
                 st.markdown("""
@@ -330,25 +329,58 @@ elif menu == t["dash"]:
                         <p>Piliers 1, 2, 3 & 4</p>
                     </div>
                 """, unsafe_allow_html=True)
-                if not df.empty and 'report_type' in df.columns:
-                    strat_count = len(df[df['report_type'] == 'Strategic'])
-                    st.metric("Rapports Piliers", strat_count)
+                strat_count = len(df[df['report_type'] == 'Strategic']) if not df.empty and 'report_type' in df.columns else 0
+                st.metric("Rapports Piliers", strat_count)
 
             st.markdown("---")
             
-            # --- SECTION TÉLÉCHARGEMENT ET TABLE ---
-            st.subheader("📥 Centre de Téléchargement Global")
+            # --- SECTION DÉTAILS PAR DÉPARTEMENT / PILIER ---
+            st.subheader("🔍 Consultation détaillée par entité")
             if not df.empty:
-                csv_data = df.to_csv(index=False).encode("utf-8")
-                st.download_button(
-                    label="📥 Télécharger toutes les données unifiées (CSV)",
-                    data=csv_data,
-                    file_name=f"juc_bubble_reports_{date.today()}.csv",
-                    mime="text/csv",
-                    use_container_width=True
-                )
-                st.markdown("### 📋 Détail complet des données (avec colonnes séparées)")
-                st.dataframe(df, use_container_width=True)
+                all_categories = df['category'].dropna().unique().tolist()
+                selected_cat_view = st.selectbox("Filtrer par Département ou Pilier pour voir les détails :", all_categories)
+                
+                filtered_df = df[df['category'] == selected_cat_view]
+                st.markdown(f"### Rapports pour : **{selected_cat_view}**")
+                
+                for index, row in filtered_df.iterrows():
+                    with st.expander(f"👤 {row.get('staff_name', 'N/A')} — Date: {row.get('submission_date', 'N/A')} ({row.get('sub_category', '')})"):
+                        st.markdown(f"**✅ Activités réalisées :**\n{row.get('completed_activities', 'N/A')}")
+                        st.markdown(f"**⏳ Projections / En attente :**\n{row.get('pending_issues', 'N/A')}")
+                        st.markdown(f"**⚠️ Défis rencontrés :**\n{row.get('challenges', 'N/A')}")
+                
+                st.markdown("---")
+                
+                # --- GÉNÉRATEUR DE DOCUMENT WORD (.DOCX) ---
+                st.subheader("📥 Exporter le rapport au format Word")
+                
+                if st.button("Générer le document Word (.docx) pour cette sélection"):
+                    doc = Document()
+                    doc.add_heading(f"Rapport JUC - {selected_cat_view}", 0)
+                    doc.add_paragraph(f"Date de génération : {date.today().strftime('%Y-%m-%d')}")
+                    doc.add_paragraph(f"Nombre total de soumissions : {len(filtered_df)}")
+                    doc.add_heading("Détail des activités", level=1)
+                    
+                    for index, row in filtered_df.iterrows():
+                        p = doc.add_paragraph()
+                        p.add_run(f"Collaborateur : {row.get('staff_name', 'N/A')}").bold = True
+                        p.add_run(f"\nDate : {row.get('submission_date', 'N/A')}\n")
+                        p.add_run(f"Activités réalisées :\n{row.get('completed_activities', 'N/A')}\n")
+                        p.add_run(f"Projections :\n{row.get('pending_issues', 'N/A')}\n")
+                        p.add_run(f"Défis :\n{row.get('challenges', 'N/A')}\n\n")
+                    
+                    # Sauvegarde en mémoire tampon
+                    buffer = io.BytesIO()
+                    doc.save(buffer)
+                    buffer.seek(0)
+                    
+                    st.download_button(
+                        label=f"📥 Télécharger le Word pour {selected_cat_view}",
+                        data=buffer,
+                        file_name=f"JUC_Rapport_{selected_cat_view.replace(' ', '_')}_{date.today()}.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        use_container_width=True
+                    )
             else:
                 st.info("Aucune donnée enregistrée pour le moment.")
                 
