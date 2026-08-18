@@ -401,7 +401,6 @@ elif menu == t["dash"]:
                     # MODE RÉSUMÉ GLOBAL
                     st.markdown("### 📋 Aperçu du Résumé Global (Tous les Départements)")
                     
-                    # Affichage d'un tableau récapitulatif rapide à l'écran
                     summary_counts = df['category'].value_counts().reset_index()
                     summary_counts.columns = ['Département / Pilier', 'Nombre de Rapports']
                     st.dataframe(summary_counts, use_container_width=True)
@@ -412,8 +411,8 @@ elif menu == t["dash"]:
                         doc.add_heading("Rapport Consolidé JUC - Résumé Global", 0)
                         doc.add_paragraph(f"Date de génération : {date.today().strftime('%Y-%m-%d')}")
                         
-                        # Section Détails Complets par Département (sans comptage numérique)
-                        doc.add_heading("1. Détails des rapports par département", level=1)
+                        # Section Détails Complets par Département (avec contenu détaillé au lieu du nombre de rapports)
+                        doc.add_heading("1. Détails complets des activités par département et pilier", level=1)
                         
                         for cat in df['category'].dropna().unique():
                             doc.add_heading(f"Département / Pilier : {cat}", level=2)
@@ -423,11 +422,11 @@ elif menu == t["dash"]:
                                 p = doc.add_paragraph()
                                 p.add_run(f"Collaborateur : {row.get('staff_name', 'N/A')}").bold = True
                                 p.add_run(f" — Date : {row.get('submission_date', 'N/A')}\n")
-                                p.add_run(f"Activités réalisées : {row.get('completed_activities', 'N/A')}\n")
+                                p.add_run(f"Activités réalisées :\n{row.get('completed_activities', 'N/A')}\n")
                                 if row.get('pending_issues'):
-                                    p.add_run(f"Projections : {row.get('pending_issues', 'N/A')}\n")
+                                    p.add_run(f"Projections / En attente :\n{row.get('pending_issues', 'N/A')}\n")
                                 if row.get('challenges'):
-                                    p.add_run(f"Défis : {row.get('challenges', 'N/A')}\n")
+                                    p.add_run(f"Défis rencontrés :\n{row.get('challenges', 'N/A')}\n")
                                 p.add_run("\n")
                         
                         buffer = io.BytesIO()
