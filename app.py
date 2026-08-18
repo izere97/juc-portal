@@ -43,7 +43,7 @@ if engine:
     except Exception as e:
         st.error(f"Erreur d'initialisation de la base de données : {e}")
 
-# --- UI & FULL SCREEN BACKGROUND ---
+# --- UI & FULL SCREEN BACKGROUND (Bien visible) ---
 st.sidebar.subheader(trans[st.session_state.lang]["lang"])
 st.session_state.lang = st.sidebar.selectbox("", ["English", "Français", "Kinyarwanda", "Dutch", "Italian", "Spanish"])
 t = trans[st.session_state.lang]
@@ -54,7 +54,7 @@ if bg_file:
     st.markdown(f"""
         <style>
         .stApp {{
-            background: linear-gradient(rgba(245, 247, 250, 0.88), rgba(245, 247, 250, 0.88)), url(data:image/jpeg;base64,{b64});
+            background: linear-gradient(rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.35)), url(data:image/jpeg;base64,{b64});
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -114,7 +114,6 @@ elif menu == t["strat"]:
     st.header(t["strat"])
     st.markdown("Veuillez sélectionner le pilier stratégique concerné pour accéder à ses objectifs et activités spécifiques.")
 
-    # Sélection du pilier via un radio/selectbox principal
     chosen_pillar = st.selectbox(
         "Select Strategic Pillar / Sélectionnez le Pilier Stratégique",
         [
