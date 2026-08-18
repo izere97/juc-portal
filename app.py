@@ -282,15 +282,31 @@ elif menu == t["strat"]:
                         conn.commit()
                     st.success("Submitted successfully!")
 
-# --- 3. DASHBOARD SOUS FORME DE BULLES (ORGANIGRAMME / RÉSEAU & DÉTAILS WORD) ---
+# --- 3. DASHBOARD SOUS FORME DE BULLES & EXPORTS (EXCEL & WORD) ---
 elif menu == t["dash"]:
     st.header(t["dash"])
-    st.markdown("Vue d'ensemble et consultation détaillée par département/pilier avec option de téléchargement Word.")
+    st.markdown("Vue d'ensemble, exportations globales et consultation détaillée par département/pilier.")
     
     if engine:
         try:
             df = pd.read_sql("SELECT * FROM juc_reports", engine)
             
+            # --- EXPORT EXCEL GLOBAL ---
+            if not df.empty:
+                st.subheader("📥 Exportation Globale des Données")
+                excel_buffer = io.BytesIO()
+                with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
+                    df.to_excel(writer, index=False, sheet_name='JUC_Reports')
+                
+                st.download_button(
+                    label="📊 Télécharger toutes les données en Excel (.xlsx)",
+                    data=excel_buffer.getvalue(),
+                    file_name=f"JUC_Global_Data_Export_{date.today()}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    use_container_width=True
+                )
+                st.markdown("---")
+
             # --- SOMMET : BULLE ADMIN ---
             st.markdown("""
                 <div class="bubble-admin">
@@ -334,53 +350,98 @@ elif menu == t["dash"]:
 
             st.markdown("---")
             
-            # --- SECTION DÉTAILS PAR DÉPARTEMENT / PILIER ---
-            st.subheader("🔍 Consultation détaillée par entité")
+            # --- SECTION DÉTAILS & EXPORT WORD (RÉSUMÉ GLOBAL OU SPÉCIFIQUE) ---
+            st.subheader("🔍 Consultation détaillée et Rapports Word")
+            
             if not df.empty:
-                all_categories = df['category'].dropna().unique().tolist()
-                selected_cat_view = st.selectbox("Filtrer par Département ou Pilier pour voir les détails :", all_categories)
+                export_mode = st.radio("Mode d'affichage et d'export Word :", ["Filtrer par Département ou Pilier", "Résumé Global de tous les départements (1 page de synthèse + détails)"])
                 
-                filtered_df = df[df['category'] == selected_cat_view]
-                st.markdown(f"### Rapports pour : **{selected_cat_view}**")
-                
-                for index, row in filtered_df.iterrows():
-                    with st.expander(f"👤 {row.get('staff_name', 'N/A')} — Date: {row.get('submission_date', 'N/A')} ({row.get('sub_category', '')})"):
-                        st.markdown(f"**✅ Activités réalisées :**\n{row.get('completed_activities', 'N/A')}")
-                        st.markdown(f"**⏳ Projections / En attente :**\n{row.get('pending_issues', 'N/A')}")
-                        st.markdown(f"**⚠️ Défis rencontrés :**\n{row.get('challenges', 'N/A')}")
-                
-                st.markdown("---")
-                
-                # --- GÉNÉRATEUR DE DOCUMENT WORD (.DOCX) ---
-                st.subheader("📥 Exporter le rapport au format Word")
-                
-                if st.button("Générer le document Word (.docx) pour cette sélection"):
-                    doc = Document()
-                    doc.add_heading(f"Rapport JUC - {selected_cat_view}", 0)
-                    doc.add_paragraph(f"Date de génération : {date.today().strftime('%Y-%m-%d')}")
-                    doc.add_paragraph(f"Nombre total de soumissions : {len(filtered_df)}")
-                    doc.add_heading("Détail des activités", level=1)
+                if export_mode == "Filtrer par Département ou Pilier":
+                    all_categories = df['category'].dropna().unique().tolist()
+                    selected_cat_view = st.selectbox("Choisir le département ou le pilier :", all_categories)
+                    
+                    filtered_df = df[df['category'] == selected_cat_view]
+                    st.markdown(f"### Rapports pour : **{selected_cat_view}**")
                     
                     for index, row in filtered_df.iterrows():
-                        p = doc.add_paragraph()
-                        p.add_run(f"Collaborateur : {row.get('staff_name', 'N/A')}").bold = True
-                        p.add_run(f"\nDate : {row.get('submission_date', 'N/A')}\n")
-                        p.add_run(f"Activités réalisées :\n{row.get('completed_activities', 'N/A')}\n")
-                        p.add_run(f"Projections :\n{row.get('pending_issues', 'N/A')}\n")
-                        p.add_run(f"Défis :\n{row.get('challenges', 'N/A')}\n\n")
+                        with st.expander(f"👤 {row.get('staff_name', 'N/A')} — Date: {row.get('submission_date', 'N/A')} ({row.get('sub_category', '')})"):
+                            st.markdown(f"**✅ Activités réalisées :**\n{row.get('completed_activities', 'N/A')}")
+                            st.markdown(f"**⏳ Projections / En attente :**\n{row.get('pending_issues', 'N/A')}")
+                            st.markdown(f"**⚠️ Défis rencontrés :**\n{row.get('challenges', 'N/A')}")
                     
-                    # Sauvegarde en mémoire tampon
-                    buffer = io.BytesIO()
-                    doc.save(buffer)
-                    buffer.seek(0)
+                    st.markdown("---")
                     
-                    st.download_button(
-                        label=f"📥 Télécharger le Word pour {selected_cat_view}",
-                        data=buffer,
-                        file_name=f"JUC_Rapport_{selected_cat_view.replace(' ', '_')}_{date.today()}.docx",
-                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                        use_container_width=True
-                    )
+                    if st.button(f"Générer le document Word pour {selected_cat_view}"):
+                        doc = Document()
+                        doc.add_heading(f"Rapport JUC - {selected_cat_view}", 0)
+                        doc.add_paragraph(f"Date de génération : {date.today().strftime('%Y-%m-%d')}")
+                        doc.add_paragraph(f"Nombre total de soumissions : {len(filtered_df)}")
+                        doc.add_heading("Détail des activités", level=1)
+                        
+                        for index, row in filtered_df.iterrows():
+                            p = doc.add_paragraph()
+                            p.add_run(f"Collaborateur : {row.get('staff_name', 'N/A')}").bold = True
+                            p.add_run(f"\nDate : {row.get('submission_date', 'N/A')}\n")
+                            p.add_run(f"Activités réalisées :\n{row.get('completed_activities', 'N/A')}\n")
+                            p.add_run(f"Projections :\n{row.get('pending_issues', 'N/A')}\n")
+                            p.add_run(f"Défis :\n{row.get('challenges', 'N/A')}\n\n")
+                        
+                        buffer = io.BytesIO()
+                        doc.save(buffer)
+                        buffer.seek(0)
+                        
+                        st.download_button(
+                            label=f"📥 Télécharger le Word pour {selected_cat_view}",
+                            data=buffer,
+                            file_name=f"JUC_Rapport_{selected_cat_view.replace(' ', '_')}_{date.today()}.docx",
+                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            use_container_width=True
+                        )
+                
+                else:
+                    # MODE RÉSUMÉ GLOBAL
+                    st.markdown("### 📋 Aperçu du Résumé Global (Tous les Départements)")
+                    st.write(f"Nombre total de rapports enregistrés : {len(df)}")
+                    
+                    # Affichage d'un tableau récapitulatif rapide à l'écran
+                    summary_counts = df['category'].value_counts().reset_index()
+                    summary_counts.columns = ['Département / Pilier', 'Nombre de Rapports']
+                    st.dataframe(summary_counts, use_container_width=True)
+                    
+                    st.markdown("---")
+                    if st.button("Générer le document Word : Résumé Global consolidé"):
+                        doc = Document()
+                        doc.add_heading("Rapport Consolidé JUC - Résumé Global", 0)
+                        doc.add_paragraph(f"Date de génération : {date.today().strftime('%Y-%m-%d')}")
+                        doc.add_paragraph(f"Nombre total de rapports consolidés : {len(df)}")
+                        
+                        # Section Résumé Analytique sur une page
+                        doc.add_heading("1. Résumé analytique par département", level=1)
+                        for cat, count in df['category'].value_counts().items():
+                            doc.add_paragraph(f"• {cat} : {count} rapport(s) soumis.")
+                        
+                        # Section Détails Complets
+                        doc.add_heading("2. Détails complets des activités", level=1)
+                        for index, row in df.iterrows():
+                            p = doc.add_paragraph()
+                            p.add_run(f"[{row.get('category', 'N/A')}] {row.get('staff_name', 'N/A')}").bold = True
+                            p.add_run(f" — Date : {row.get('submission_date', 'N/A')}\n")
+                            p.add_run(f"Activités : {row.get('completed_activities', 'N/A')}\n")
+                            if row.get('challenges'):
+                                p.add_run(f"Défis : {row.get('challenges', 'N/A')}\n")
+                            p.add_run("\n")
+                        
+                        buffer = io.BytesIO()
+                        doc.save(buffer)
+                        buffer.seek(0)
+                        
+                        st.download_button(
+                            label="📥 Télécharger le Rapport Word Consolidé (.docx)",
+                            data=buffer,
+                            file_name=f"JUC_Resume_Global_{date.today()}.docx",
+                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            use_container_width=True
+                        )
             else:
                 st.info("Aucune donnée enregistrée pour le moment.")
                 
