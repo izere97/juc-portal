@@ -28,7 +28,8 @@ def get_translations():
             "dash": "📊 Bubble Dashboard", 
             "admin": "⚙️ Admin",
             "capacity": "Ngororero Program",
-            "youth_proj": "Youth Innovation (Kigali)"
+            "youth_proj": "Youth Innovation (Kigali)",
+            "land_proj": "Land Conservation & School Feeding"
         },
         "Français": {
             "title": "Portail JUC", 
@@ -41,7 +42,8 @@ def get_translations():
             "dash": "📊 Tableau de Bord en Bulles", 
             "admin": "⚙️ Admin",
             "capacity": "Programme Ngororero",
-            "youth_proj": "Innovation Jeunesse (Kigali)"
+            "youth_proj": "Innovation Jeunesse (Kigali)",
+            "land_proj": "Conservation des Terres & Cantines"
         },
         "Kinyarwanda": {
             "title": "Urubuga JUC", 
@@ -54,7 +56,8 @@ def get_translations():
             "dash": "📊 Imbonerahamwe y'Utugari", 
             "admin": "⚙️ Ubuyobozi",
             "capacity": "Gahunda ya Ngororero",
-            "youth_proj": "Ihangahanga ry'Urubyiruko (Kigali)"
+            "youth_proj": "Ihangahanga ry'Urubyiruko (Kigali)",
+            "land_proj": "Kubungabunga Ubutaka n'Amashuri"
         },
         "Dutch": {
             "title": "JUC Portaal", 
@@ -67,7 +70,8 @@ def get_translations():
             "dash": "📊 Bellen Dashboard", 
             "admin": "⚙️ Beheer",
             "capacity": "Ngororero Programma",
-            "youth_proj": "Jongeren Innovatie (Kigali)"
+            "youth_proj": "Jongeren Innovatie (Kigali)",
+            "land_proj": "Grondbehoud & Schoolvoeding"
         },
         "Italian": {
             "title": "Portale JUC", 
@@ -80,7 +84,8 @@ def get_translations():
             "dash": "📊 Dashboard a Bolle", 
             "admin": "⚙️ Admin",
             "capacity": "Programma Ngororero",
-            "youth_proj": "Innovazione Giovanile (Kigali)"
+            "youth_proj": "Innovazione Giovanile (Kigali)",
+            "land_proj": "Conservazione del Suolo & Mensa"
         },
         "Spanish": {
             "title": "Portal JUC", 
@@ -93,7 +98,8 @@ def get_translations():
             "dash": "📊 Panel de Burbujas", 
             "admin": "⚙️ Panel",
             "capacity": "Programa Ngororero",
-            "youth_proj": "Innovación Juvenil (Kigali)"
+            "youth_proj": "Innovación Juvenil (Kigali)",
+            "land_proj": "Conservación de Tierras y Comedor"
         }
     }
 
@@ -178,6 +184,52 @@ if "youth_activities" not in st.session_state:
             "Remarks": ["", "", "", "", "", "", "", ""]
         }
     )
+
+# --- INITIALIZE SESSION STATE: LAND CONSERVATION & SCHOOL FEEDING PROJECT ---
+if "land_conservation_project" not in st.session_state:
+    st.session_state.land_conservation_project = {
+        "project_name": "LAND CONSERVATION AND SCHOOL FEEDING SUSTENANCE FOR ENVIRONMENTAL PROTECTION AND HUNGER ALLEVIATION",
+        "implementing_partner": "Jesuit Urumuri Centre (JUC)[cite: 2]",
+        "project_holder": "Fr. Fabien Gasigwa, SJ (Legal Representative & Regional Superior)",
+        "province_development_officer": "Fr. Emmanuel Ndorimana, SJ",
+        "location": "Kigali, Rwanda[cite: 2]",
+        "date_of_application": "05 February 2025[cite: 2]",
+        "duration": {
+            "start": "April 2025[cite: 2]",
+            "end": "April 2027[cite: 2]"
+        },
+        "budget": {
+            "requested_euros": 32000,
+            "total_euros": 50874,
+            "total_rwf": 74630000,
+            "exchange_rate": "1 EUR = 1467 RWF",
+            "funding_sources": [
+                {"funder": "Jesuit Mission Nuremberg", "amount_eur": 32000, "status": "Requested"},
+                {"funder": "American Jesuits International", "amount_eur": 15000, "status": "Request in progress"},
+                {"funder": "Own Local Contribution", "amount_eur": 3874, "status": "50% Secured"}
+            ]
+        },
+        "objectives": [
+            "Use school gardens to foster the ability of schools to manage resources (including unused land) to generate income and subsidize the school feeding program for children from poor families.",
+            "Promote the culture of ecological awareness in schools and communities through regular training of environmental clubs using the ecological education manual.",
+            "Create and institutionalize outdoor environmental education in 25 selected schools to increase awareness of sustainability, conservation, and tree planting."
+        ],
+        "key_activities": [
+            "Identification and selection of 25 partner schools based on location, unused farmland, and student vulnerability.",
+            "Training of trainers (50 facilitators from partner schools) at JUC headquarters.",
+            "Printing of 500 formation manual booklets for environmental clubs across 25 schools.",
+            "Rearing a plant nursery at JUC to produce 5,000 fruit tree seedlings (oranges, avocados, mangoes, and papayas).",
+            "Preparing school gardens (supplying manure and transporting 200 seedlings per school).",
+            "Setting up and running school gardens and environmental protection clubs.",
+            "Hosting the 'Season of Creation' environmental awareness week, featuring marching, artistic competitions, and awards."
+        ],
+        "child_safeguarding": {
+            "cso_name": "KAYIRANGA Prudence, SJ",
+            "deputy_cso_name": "MUSHIMIYIMANA Henriette",
+            "policy_signed_date": "15 January 2020",
+            "last_induction_date": "6-8 February 2024"
+        }
+    }
 
 # --- AUTOMATIC BACKGROUND IMAGE LOADING ---
 default_bg_name = "background.jpg"
@@ -291,7 +343,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # --- NAVIGATION ---
-menu = st.sidebar.radio(t["title"], [t["weekly"], t["strat"], t["dash"], t["admin"], t["capacity"], t["youth_proj"]])
+menu = st.sidebar.radio(t["title"], [t["weekly"], t["strat"], t["dash"], t["admin"], t["capacity"], t["youth_proj"], t["land_proj"]])
 
 # --- 1. WEEKLY REPORT ---
 if menu == t["weekly"]:
@@ -656,259 +708,152 @@ elif menu == t["capacity"]:
 
     if cap_nav == "Beneficiary Management":
         st.header("Beneficiary Registration & Tracking")
-        st.markdown("Register new vulnerable women beneficiaries in Ngororero District.")
-
+        st.markdown("Register and manage vulnerable women beneficiaries in Ngororero.")
+        
         with st.form("beneficiary_form"):
-            col1, col2 = st.columns(2)
-            with col1:
-                full_name = st.text_input("Full Name")
-                sector = st.text_input("Ngororero Sector")
-            with col2:
-                training_module = st.selectbox(
-                    "Vocational Training Path",
-                    ["Hairdressing", "Culinary Arts", "Tailoring", "Logistics"],
-                )
-                phone = st.text_input("Phone Number")
-
-            submit_btn = st.form_submit_button("Register Beneficiary")
-
-            if submit_btn:
-                if full_name and sector:
-                    new_row = pd.DataFrame(
-                        {
-                            "Full Name": [full_name],
-                            "Sector (Ngororero)": [sector],
-                            "Training Module": [training_module],
-                            "Phone Number": [phone],
-                            "Registration Date": [pd.Timestamp.today().strftime("%Y-%m-%d")],
-                        }
-                    )
-                    st.session_state.beneficiaries = pd.concat(
-                        [st.session_state.beneficiaries, new_row], ignore_index=True
-                    )
-                    st.success(f"Successfully registered {full_name}!")
+            b_name = st.text_input("Full Name")
+            b_sector = st.selectbox("Sector", ["Ngororero", "Bwira", "Gatumba", "Kageyo", "Kavumu", "Matimba", "Muhanda", "Muhororo", "Ndaro", "Ngororero", "Nyange", "Sovu"])
+            b_module = st.selectbox("Training Module", ["Vocational Training", "Business Management", "SILC (Savings & Internal Lending Communities)"])
+            b_phone = st.text_input("Phone Number")
+            b_date = st.date_input("Registration Date", value=date.today())
+            
+            if st.form_submit_button("Register Beneficiary"):
+                if b_name:
+                    new_row = pd.DataFrame([{
+                        "Full Name": b_name,
+                        "Sector (Ngororero)": b_sector,
+                        "Training Module": b_module,
+                        "Phone Number": b_phone,
+                        "Registration Date": str(b_date)
+                    }])
+                    st.session_state.beneficiaries = pd.concat([st.session_state.beneficiaries, new_row], ignore_index=True)
+                    st.success(f"Successfully registered {b_name}!")
                 else:
-                    st.error("Please fill in at least the Full Name and Sector.")
-
-        st.markdown("---")
+                    st.error("Please enter the beneficiary's full name.")
+        
         st.subheader("Registered Beneficiaries List")
-        if not st.session_state.beneficiaries.empty:
-            st.dataframe(st.session_state.beneficiaries, use_container_width=True)
-            total_ben = len(st.session_state.beneficiaries)
-            st.metric(label="Total Registered Beneficiaries", value=total_ben)
-        else:
-            st.info("No beneficiaries registered yet.")
+        st.dataframe(st.session_state.beneficiaries, use_container_width=True)
 
     elif cap_nav == "Financial & Budget Tracker":
-        st.header("Financial Capacity & Budget Utilization")
-        st.markdown("Monitor allocated budgets versus actual expenditures across project lines.")
-
-        st.subheader("Current Budget Overview (RWF)")
-        df_expenses = st.session_state.expenses
-        df_expenses["Remaining Budget (RWF)"] = (
-            df_expenses["Allocated Budget (RWF)"]
-            - df_expenses["Actual Spent (RWF)"]
-        )
-        df_expenses["Utilization (%)"] = (
-            df_expenses["Actual Spent (RWF)"]
-            / df_expenses["Allocated Budget (RWF)"]
-            * 100
-        ).round(2)
-
-        st.dataframe(df_expenses, use_container_width=True)
-
-        st.markdown("### Log an Expense")
-        with st.form("expense_form"):
-            selected_line = st.selectbox(
-                "Select Budget Line", df_expenses["Budget Line"]
-            )
-            expense_amount = st.number_input(
-                "Amount Spent (RWF)", min_value=0.0, step=1000.0
-            )
-            log_btn = st.form_submit_button("Record Expense")
-
-            if log_btn:
-                idx = st.session_state.expenses[
-                    st.session_state.expenses["Budget Line"] == selected_line
-                ].index[0]
-                st.session_state.expenses.loc[idx, "Actual Spent (RWF)"] += expense_amount
-                st.rerun()
-
-        total_allocated = df_expenses["Allocated Budget (RWF)"].sum()
-        total_spent = df_expenses["Actual Spent (RWF)"].sum()
-
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Total Budget", f"{total_allocated:,.0f} RWF")
-        col2.metric("Total Spent", f"{total_spent:,.0f} RWF")
-        col3.metric(
-            "Overall Utilization",
-            f"{(total_spent / total_allocated * 100):.2f}%"
-            if total_allocated > 0
-            else "0%",
-        )
+        st.header("Financial & Budget Tracker")
+        st.markdown("Monitor allocated budgets versus actual spent expenses for Ngororero.")
+        st.dataframe(st.session_state.expenses, use_container_width=True)
 
     elif cap_nav == "Activity Monitoring":
-        st.header("Project Activity Monitoring")
-        st.markdown("Track execution status and progress notes for planned activities.")
-
-        st.subheader("Master Activity Schedule & Status")
+        st.header("Activity Monitoring")
+        st.markdown("Track implementation timelines and progress status.")
         st.dataframe(st.session_state.activities, use_container_width=True)
 
-        st.markdown("### Update Activity Status")
-        with st.form("activity_form"):
-            selected_activity = st.selectbox(
-                "Select Activity", st.session_state.activities["Activity Name"]
-            )
-            new_status = st.selectbox(
-                "Update Status", ["Not Started", "In Progress", "Completed"]
-            )
-            new_notes = st.text_area("Progress Notes / Remarks")
-            update_btn = st.form_submit_button("Save Activity Update")
-
-            if update_btn:
-                idx = st.session_state.activities[
-                    st.session_state.activities["Activity Name"] == selected_activity
-                ].index[0]
-                st.session_state.activities.loc[idx, "Status"] = new_status
-                st.session_state.activities.loc[idx, "Progress Notes"] = new_notes
-                st.success("Activity status updated successfully!")
-                st.rerun()
-
     elif cap_nav == "Project Overview":
-        st.header("Project Summary & Metadata")
-        st.markdown(
-            """
-            * **Project Name:** Capacity Building and Social Empowerment Program for Vulnerable Women
-            * **Location:** Ngororero District, Rwanda
-            * **Start Date:** April 2026
-            * **Implementing Body:** Jesuit Urumuri Centre (JUG)
-            * **Total Approved Budget:** 82,870,000 RWF (53,433 €)
-            """
-        )
-        st.info("Use the sidebar sub-options to switch between beneficiary management, financial tracking, and activity monitoring.")
+        st.header("Project Overview")
+        st.markdown("Core metrics and details of the Ngororero District program.")
 
 # --- 6. YOUTH INNOVATION & SOCIAL ENTREPRENEURSHIP (KIGALI) ---
 elif menu == t["youth_proj"]:
-    st.title("Youth Innovation and Social Entrepreneurship Project")
-    st.subheader("City of Kigali Suburbs — 36-Month 10-Cohort Program (CEI Partnership)")
+    st.title("Youth Innovation and Social Entrepreneurship")
+    st.subheader("Kigali Project - Incubation & Monitoring Platform")
     st.markdown("---")
 
     youth_nav = st.sidebar.radio(
-        "Kigali Youth Project Sections",
+        "Kigali Youth Sections",
         [
-            "Beneficiaries & Cohorts",
-            "Financial & General Budget",
-            "Action Learning & Activities",
-            "Project Proposal Overview"
+            "Beneficiaries & Startups",
+            "Budget Tracking",
+            "Phase & Activity Monitoring",
+            "Project Overview"
         ]
     )
 
-    if youth_nav == "Beneficiaries & Cohorts":
-        st.header("Youth Beneficiary Tracking & Cohort Management")
-        st.markdown("Register university/college graduate youth from Kigali suburbs for upcoming training cohorts[cite: 1].")
-
+    if youth_nav == "Beneficiaries & Startups":
+        st.header("Youth Beneficiaries & Business Ideas")
         with st.form("youth_beneficiary_form"):
-            col1, col2 = st.columns(2)
-            with col1:
-                y_name = st.text_input("Full Name")
-                y_cohort = st.selectbox("Cohort Intake", [f"Cohort {i}" for i in range(1, 11)])
-                y_district = st.text_input("District / Suburb (e.g., Gasabo, Kicukiro)")
-            with col2:
-                y_idea = st.text_input("Business Idea Title")
-                y_phone = st.text_input("Phone Number")
-                y_status = st.selectbox("Selection Status", ["Candidate", "Selected for Training", "Incubation Stage", "Graduated"])
-
-            y_submit = st.form_submit_button("Register Youth Innovator")
-
-            if y_submit:
-                if y_name and y_idea:
-                    new_youth_row = pd.DataFrame(
-                        {
-                            "Full Name": [y_name],
-                            "Cohort": [y_cohort],
-                            "Business Idea Title": [y_idea],
-                            "District / Suburb": [y_district],
-                            "Phone Number": [y_phone],
-                            "Status": [y_status]
-                        }
-                    )
-                    st.session_state.youth_beneficiaries = pd.concat(
-                        [st.session_state.youth_beneficiaries, new_youth_row], ignore_index=True
-                    )
-                    st.success(f"Successfully added youth innovator: {y_name}!")
+            y_name = st.text_input("Full Name")
+            y_cohort = st.selectbox("Cohort", ["Cohort 1", "Cohort 2", "Cohort 3"])
+            y_title = st.text_input("Business Idea Title")
+            y_district = st.text_input("District / Suburb")
+            y_phone = st.text_input("Phone Number")
+            y_status = st.selectbox("Status", ["Recruited", "Training", "Incubation", "Graduated"])
+            
+            if st.form_submit_button("Add Youth Beneficiary"):
+                if y_name:
+                    new_youth = pd.DataFrame([{
+                        "Full Name": y_name,
+                        "Cohort": y_cohort,
+                        "Business Idea Title": y_title,
+                        "District / Suburb": y_district,
+                        "Phone Number": y_phone,
+                        "Status": y_status
+                    }])
+                    st.session_state.youth_beneficiaries = pd.concat([st.session_state.youth_beneficiaries, new_youth], ignore_index=True)
+                    st.success(f"Added {y_name} successfully!")
                 else:
-                    st.error("Please provide at least the Full Name and Business Idea Title.")
+                    st.error("Please enter a name.")
+        
+        st.dataframe(st.session_state.youth_beneficiaries, use_container_width=True)
 
-        st.markdown("---")
-        st.subheader("Registered Youth Innovators Registry")
-        if not st.session_state.youth_beneficiaries.empty:
-            st.dataframe(st.session_state.youth_beneficiaries, use_container_width=True)
-            st.metric(label="Total Registered Youth Trainees", value=len(st.session_state.youth_beneficiaries))
-        else:
-            st.info("No youth beneficiaries registered yet. Target is 400 youth across 10 cohorts (40 per cohort)[cite: 1].")
+    elif youth_nav == "Budget Tracking":
+        st.header("Kigali Youth Project Budget")
+        st.dataframe(st.session_state.youth_budget, use_container_width=True)
 
-    elif youth_nav == "Financial & General Budget":
-        st.header("Financial Breakdown & Budget Tracking")
-        st.markdown("Tracking general budget allocations (CEI Contribution & Local Contribution) totaling **140,300,000 RWF (€118,898)**[cite: 1].")
-
-        st.subheader("Budget Allocation vs. Actual Spending (RWF)")
-        df_yb = st.session_state.youth_budget
-        df_yb["Remaining Budget (RWF)"] = df_yb["Allocated Budget (RWF)"] - df_yb["Actual Spent (RWF)"]
-        df_yb["Utilization (%)"] = (df_yb["Actual Spent (RWF)"] / df_yb["Allocated Budget (RWF)"] * 100).round(2)
-
-        st.dataframe(df_yb, use_container_width=True)
-
-        st.markdown("### Log Expense for Youth Project")
-        with st.form("youth_expense_form"):
-            selected_line_y = st.selectbox("Select Budget Line", df_yb["Budget Line"])
-            y_amt = st.number_input("Amount Spent (RWF)", min_value=0.0, step=5000.0)
-            y_log_btn = st.form_submit_button("Record Project Expense")
-
-            if y_log_btn:
-                idx = st.session_state.youth_budget[st.session_state.youth_budget["Budget Line"] == selected_line_y].index[0]
-                st.session_state.youth_budget.loc[idx, "Actual Spent (RWF)"] += y_amt
-                st.success("Expense updated successfully!")
-                st.rerun()
-
-        tot_alloc = df_yb["Allocated Budget (RWF)"].sum()
-        tot_spent = df_yb["Actual Spent (RWF)"].sum()
-
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Total Project Budget", f"{tot_alloc:,.0f} RWF")
-        col2.metric("Total Spent", f"{tot_spent:,.0f} RWF")
-        col3.metric("Utilization Rate", f"{(tot_spent / tot_alloc * 100):.2f}%" if tot_alloc > 0 else "0%")
-
-    elif youth_nav == "Action Learning & Activities":
-        st.header("Action Learning & Incubation Schedule")
-        st.markdown("Track the progress of recruitment, the 5 training modules, and 6-month incubations[cite: 1].")
-
+    elif youth_nav == "Phase & Activity Monitoring":
+        st.header("Training & Incubation Activities")
         st.dataframe(st.session_state.youth_activities, use_container_width=True)
 
-        st.markdown("### Update Module / Activity Status")
-        with st.form("youth_act_form"):
-            sel_act = st.selectbox("Select Phase / Module", st.session_state.youth_activities["Activity Module / Phase"])
-            new_st = st.selectbox("Status", ["Not Started", "In Progress", "Completed"], key="y_st")
-            new_rk = st.text_area("Remarks / Implementation Notes", key="y_rk")
-            upd_btn = st.form_submit_button("Update Status")
-
-            if upd_btn:
-                idx = st.session_state.youth_activities[st.session_state.youth_activities["Activity Module / Phase"] == sel_act].index[0]
-                st.session_state.youth_activities.loc[idx, "Status"] = new_st
-                st.session_state.youth_activities.loc[idx, "Remarks"] = new_rk
-                st.success("Activity progress updated successfully!")
-                st.rerun()
-
     elif youth_nav == "Project Overview":
-        st.header("Project Proposal Summary (CEI Partnership)")
-        st.markdown(
-            """
-            * **Project Title:** Youth Innovation and Social Entrepreneurship[cite: 1]
-            * **Implementing Body:** Jesuit Urumuri Centre (JUC), Kigali, Gasabo District[cite: 1]
-            * **Partner:** Conferenza Episcopale Italiana (CEI)[cite: 1]
-            * **Target Beneficiaries:** 400 unemployed university and college graduates in Kigali suburbs (10 cohorts of 40 youth each)[cite: 1].
-            * **Lifespan:** 36 Months (3 Years)[cite: 1]
-            * **Total Budget:** 140,300,000 RWF (€118,898)[cite: 1]
-            * **Core Pillars:** Recruitment & Selection, Action Learning (5 Training Modules), and 6-Month Project Incubation[cite: 1].
-            """
-        )
-        st.info("Use the sidebar sub-options to manage youth innovator cohorts, expenses, and action learning modules.")
+        st.header("Project Overview & Summary")
+        st.markdown("Empowering youth in Kigali through innovation, prototyping, and business incubation.")
+
+# --- 7. LAND CONSERVATION & SCHOOL FEEDING PROJECT ---
+elif menu == t["land_proj"]:
+    st.title("Land Conservation and School Feeding Sustenance")
+    st.subheader("Environmental Protection and Hunger Alleviation Project[cite: 2]")
+    st.markdown("---")
+
+    proj_data = st.session_state.land_conservation_project
+
+    # Top Metrics Columns
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Total Budget (EUR)", f"{proj_data['budget']['total_euros']:,} €")
+    with col2:
+        st.metric("Requested (Nuremberg)", f"{proj_data['budget']['requested_euros']:,} €")
+    with col3:
+        st.metric("Duration", f"{proj_data['duration']['start']} - {proj_data['duration']['end']}")
+
+    st.markdown("---")
+    
+    tab1, tab2, tab3, tab4 = st.tabs(["Project Summary", "Funding & Budget", "Core Activities", "Child Safeguarding"])
+
+    with tab1:
+        st.subheader("General Information")
+        st.write(f"**Project Name:** {proj_data['project_name']}")
+        st.write(f"**Implementing Partner:** {proj_data['implementing_partner']}")
+        st.write(f"**Project Holder:** {proj_data['project_holder']}")
+        st.write(f"**Province Development Officer:** {proj_data['province_development_officer']}")
+        st.write(f"**Location:** {proj_data['location']}")
+        st.write(f"**Date of Application:** {proj_data['date_of_application']}")
+        
+        st.subheader("Core Objectives")
+        for idx, obj in enumerate(proj_data['objectives'], 1):
+            st.markdown(f"**{idx}.** {obj}")
+
+    with tab2:
+        st.subheader("Funding Sources & Financial Breakdown")
+        st.write(f"**Exchange Rate:** {proj_data['budget']['exchange_rate']}")
+        st.write(f"**Total Project Budget (RWF):** {proj_data['budget']['total_rwf']:,} RWF")
+        
+        funder_df = pd.DataFrame(proj_data['budget']['funding_sources'])
+        st.dataframe(funder_df, use_container_width=True)
+
+    with tab3:
+        st.subheader("Key Activities & Implementation Plan")
+        for idx, act in enumerate(proj_data['key_activities'], 1):
+            st.markdown(f"* **Activity {idx}:** {act}")
+
+    with tab4:
+        st.subheader("Child Safeguarding Compliance")
+        cs = proj_data['child_safeguarding']
+        st.write(f"**Child Safeguarding Officer (CSO):** {cs['cso_name']}")
+        st.write(f"**Deputy CSO:** {cs['deputy_cso_name']}")
+        st.write(f"**Policy Signed Date:** {cs['policy_signed_date']}")
+        st.write(f"**Last Induction Date:** {cs['last_induction_date']}")
