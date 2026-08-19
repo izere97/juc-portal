@@ -23,6 +23,8 @@ def get_translations():
 
 # --- INITIALIZATION ---
 if "lang" not in st.session_state: st.session_state.lang = "English"
+if "authenticated" not in st.session_state: st.session_state.authenticated = False
+
 trans = get_translations()
 engine = create_engine(st.secrets["DATABASE_URL"]) if "DATABASE_URL" in st.secrets else None
 
@@ -60,10 +62,34 @@ if engine:
     except Exception as e:
         st.error(f"Database initialization error: {e}")
 
-# --- UI & SIDEBAR ---
+# --- UI & SIDEBAR AUTHENTICATION ---
 st.sidebar.subheader(trans[st.session_state.lang]["lang"])
 st.session_state.lang = st.sidebar.selectbox("", ["English", "Français", "Kinyarwanda", "Dutch", "Italian", "Spanish"])
 t = trans[st.session_state.lang]
+
+st.sidebar.markdown("---")
+st.sidebar.subheader("🔒 Authentication")
+
+if not st.session_state.authenticated:
+    with st.sidebar.form("login_form"):
+        password_input = st.text_input("Password", type="password")
+        submit_button = st.form_submit_button("Sign In")
+        
+        if submit_button:
+            if password_input == "JUC2026Secure":
+                st.session_state.authenticated = True
+                st.rerun()
+            else:
+                st.error("Incorrect password.")
+
+if not st.session_state.authenticated:
+    st.warning("Access Restricted. Please enter the secure password in the sidebar and click **Sign In**.")
+    st.stop()
+
+# Add a Sign Out option if already authenticated
+if st.sidebar.button("Sign Out"):
+    st.session_state.authenticated = False
+    st.rerun()
 
 bg_css = f"url('data:image/jpeg;base64,{st.session_state.bg_base64}')" if st.session_state.bg_base64 else "none"
 
@@ -113,12 +139,6 @@ st.markdown(f"""
     }}
     </style>
 """, unsafe_allow_html=True)
-
-# --- PASSWORD SECURITY ---
-password_input = st.sidebar.text_input("Password", type="password")
-if password_input != "JUC2026Secure":
-    st.warning("Access Restricted. Please enter the secure password in the sidebar.")
-    st.stop()
 
 # --- NAVIGATION ---
 menu = st.sidebar.radio(t["title"], [t["weekly"], t["strat"], t["dash"], t["admin"]])
