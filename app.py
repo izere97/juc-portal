@@ -9,7 +9,7 @@ import streamlit as st
 
 # --- CONFIGURATION ---
 st.set_page_config(
-    page_title="JUC Portal - Capacity Building Program",
+    page_title="JUC Portal - Multi-Project Management",
     page_icon="📊",
     layout="wide",
 )
@@ -27,7 +27,8 @@ def get_translations():
             "pillar": "Strategic Pillar", 
             "dash": "📊 Bubble Dashboard", 
             "admin": "⚙️ Admin",
-            "capacity": "Ngororero Program"
+            "capacity": "Ngororero Program",
+            "youth_proj": "Youth Innovation (Kigali)"
         },
         "Français": {
             "title": "Portail JUC", 
@@ -39,7 +40,8 @@ def get_translations():
             "pillar": "Pilier Stratégique", 
             "dash": "📊 Tableau de Bord en Bulles", 
             "admin": "⚙️ Admin",
-            "capacity": "Programme Ngororero"
+            "capacity": "Programme Ngororero",
+            "youth_proj": "Innovation Jeunesse (Kigali)"
         },
         "Kinyarwanda": {
             "title": "Urubuga JUC", 
@@ -51,7 +53,8 @@ def get_translations():
             "pillar": "Inkingi y'Ingamba", 
             "dash": "📊 Imbonerahamwe y'Utugari", 
             "admin": "⚙️ Ubuyobozi",
-            "capacity": "Gahunda ya Ngororero"
+            "capacity": "Gahunda ya Ngororero",
+            "youth_proj": "Ihangahanga ry'Urubyiruko (Kigali)"
         },
         "Dutch": {
             "title": "JUC Portaal", 
@@ -63,7 +66,8 @@ def get_translations():
             "pillar": "Strategische Pijler", 
             "dash": "📊 Bellen Dashboard", 
             "admin": "⚙️ Beheer",
-            "capacity": "Ngororero Programma"
+            "capacity": "Ngororero Programma",
+            "youth_proj": "Jongeren Innovatie (Kigali)"
         },
         "Italian": {
             "title": "Portale JUC", 
@@ -75,7 +79,8 @@ def get_translations():
             "pillar": "Pilastro Strategico", 
             "dash": "📊 Dashboard a Bolle", 
             "admin": "⚙️ Admin",
-            "capacity": "Programma Ngororero"
+            "capacity": "Programma Ngororero",
+            "youth_proj": "Innovazione Giovanile (Kigali)"
         },
         "Spanish": {
             "title": "Portal JUC", 
@@ -87,7 +92,8 @@ def get_translations():
             "pillar": "Pilar Estratégico", 
             "dash": "📊 Panel de Burbujas", 
             "admin": "⚙️ Panel",
-            "capacity": "Programa Ngororero"
+            "capacity": "Programa Ngororero",
+            "youth_proj": "Innovación Juvenil (Kigali)"
         }
     }
 
@@ -98,16 +104,10 @@ if "authenticated" not in st.session_state: st.session_state.authenticated = Fal
 trans = get_translations()
 engine = create_engine(st.secrets["DATABASE_URL"]) if "DATABASE_URL" in st.secrets else None
 
-# --- INITIALIZE SESSION STATE FOR CAPACITY BUILDING PROGRAM ---
+# --- INITIALIZE SESSION STATE: NGORORERO PROGRAM ---
 if "beneficiaries" not in st.session_state:
     st.session_state.beneficiaries = pd.DataFrame(
-        columns=[
-            "Full Name",
-            "Sector (Ngororero)",
-            "Training Module",
-            "Phone Number",
-            "Registration Date",
-        ]
+        columns=["Full Name", "Sector (Ngororero)", "Training Module", "Phone Number", "Registration Date"]
     )
 
 if "expenses" not in st.session_state:
@@ -120,13 +120,7 @@ if "expenses" not in st.session_state:
                 "SILC Support & Equipment",
                 "Program Implementation (Salaries)",
             ],
-            "Allocated Budget (RWF)": [
-                750000,
-                31800000,
-                6120000,
-                27400000,
-                16800000,
-            ],
+            "Allocated Budget (RWF)": [750000, 31800000, 6120000, 27400000, 16800000],
             "Actual Spent (RWF)": [0, 0, 0, 0, 0],
         }
     )
@@ -138,27 +132,50 @@ if "activities" not in st.session_state:
                 "Selection of beneficiaries",
                 "Vocational training for income-generating initiatives",
                 "Formation in resource and business management",
-                (
-                    "Formation of Savings and Internal Lending Communities (SILCs)"
-                    " and support"
-                ),
+                "Formation of Savings and Internal Lending Communities (SILCs) and support",
                 "Program Implementation (Salaries)",
             ],
-            "Planned Timeline": [
-                "Q1 - Q2",
-                "Q2 - Q5",
-                "Q3 - Q6",
-                "Q4 - Q8",
-                "Q1 - Q8",
-            ],
-            "Status": [
-                "Not Started",
-                "Not Started",
-                "Not Started",
-                "Not Started",
-                "Not Started",
-            ],
+            "Planned Timeline": ["Q1 - Q2", "Q2 - Q5", "Q3 - Q6", "Q4 - Q8", "Q1 - Q8"],
+            "Status": ["Not Started", "Not Started", "Not Started", "Not Started", "Not Started"],
             "Progress Notes": ["", "", "", "", ""],
+        }
+    )
+
+# --- INITIALIZE SESSION STATE: YOUTH INNOVATION & SOCIAL ENTREPRENEURSHIP (KIGALI) ---
+if "youth_beneficiaries" not in st.session_state:
+    st.session_state.youth_beneficiaries = pd.DataFrame(
+        columns=["Full Name", "Cohort", "Business Idea Title", "District / Suburb", "Phone Number", "Status"]
+    )
+
+if "youth_budget" not in st.session_state:
+    st.session_state.youth_budget = pd.DataFrame(
+        {
+            "Budget Line": [
+                "1. Recruitment & Selection (Admin/Transport & Competitions)",
+                "2. Trainings (Program Mgr, Asst, Mentors, Seed Funding, Equipment, Graduation)",
+                "3. Incubation & Support (Facilitation Fees, Mentorship, Wi-Fi, Guest Speakers)"
+            ],
+            "Allocated Budget (RWF)": [6100000, 92000000, 47600000],
+            "Actual Spent (RWF)": [0, 0, 0]
+        }
+    )
+
+if "youth_activities" not in st.session_state:
+    st.session_state.youth_activities = pd.DataFrame(
+        {
+            "Activity Module / Phase": [
+                "Recruitment: Identification of candidates & Competitions",
+                "Training: Self-Discovery Module",
+                "Training: Self-Realization, Innovation & Prototyping",
+                "Training: Marketing and Promotion",
+                "Training: Operations, Financing & Financial Management",
+                "Training: Strategic Planning and Sustainability",
+                "Incubation: Enrolling into incubator & monthly coaching",
+                "M&E: Quarterly project evaluations"
+            ],
+            "Timeline": ["Months 1-3 per cohort", "Phase 1", "Phase 2", "Phase 3", "Phase 4", "Phase 5", "6 Months Incubation", "Continuous (36 Mos)"],
+            "Status": ["Not Started", "Not Started", "Not Started", "Not Started", "Not Started", "Not Started", "Not Started", "Not Started"],
+            "Remarks": ["", "", "", "", "", "", "", ""]
         }
     )
 
@@ -274,7 +291,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # --- NAVIGATION ---
-menu = st.sidebar.radio(t["title"], [t["weekly"], t["strat"], t["dash"], t["admin"], t["capacity"]])
+menu = st.sidebar.radio(t["title"], [t["weekly"], t["strat"], t["dash"], t["admin"], t["capacity"], t["youth_proj"]])
 
 # --- 1. WEEKLY REPORT ---
 if menu == t["weekly"]:
@@ -764,8 +781,134 @@ elif menu == t["capacity"]:
             * **Project Name:** Capacity Building and Social Empowerment Program for Vulnerable Women
             * **Location:** Ngororero District, Rwanda
             * **Start Date:** April 2026
-            * **Implementing Body:** Jesuit Urumuri Centre (JUC)
+            * **Implementing Body:** Jesuit Urumuri Centre (JUG)
             * **Total Approved Budget:** 82,870,000 RWF (53,433 €)
             """
         )
         st.info("Use the sidebar sub-options to switch between beneficiary management, financial tracking, and activity monitoring.")
+
+# --- 6. YOUTH INNOVATION & SOCIAL ENTREPRENEURSHIP (KIGALI) ---
+elif menu == t["youth_proj"]:
+    st.title("Youth Innovation and Social Entrepreneurship Project")
+    st.subheader("City of Kigali Suburbs — 36-Month 10-Cohort Program (CEI Partnership)")
+    st.markdown("---")
+
+    youth_nav = st.sidebar.radio(
+        "Kigali Youth Project Sections",
+        [
+            "Beneficiaries & Cohorts",
+            "Financial & General Budget",
+            "Action Learning & Activities",
+            "Project Proposal Overview"
+        ]
+    )
+
+    if youth_nav == "Beneficiaries & Cohorts":
+        st.header("Youth Beneficiary Tracking & Cohort Management")
+        st.markdown("Register university/college graduate youth from Kigali suburbs for upcoming training cohorts[cite: 1].")
+
+        with st.form("youth_beneficiary_form"):
+            col1, col2 = st.columns(2)
+            with col1:
+                y_name = st.text_input("Full Name")
+                y_cohort = st.selectbox("Cohort Intake", [f"Cohort {i}" for i in range(1, 11)])
+                y_district = st.text_input("District / Suburb (e.g., Gasabo, Kicukiro)")
+            with col2:
+                y_idea = st.text_input("Business Idea Title")
+                y_phone = st.text_input("Phone Number")
+                y_status = st.selectbox("Selection Status", ["Candidate", "Selected for Training", "Incubation Stage", "Graduated"])
+
+            y_submit = st.form_submit_button("Register Youth Innovator")
+
+            if y_submit:
+                if y_name and y_idea:
+                    new_youth_row = pd.DataFrame(
+                        {
+                            "Full Name": [y_name],
+                            "Cohort": [y_cohort],
+                            "Business Idea Title": [y_idea],
+                            "District / Suburb": [y_district],
+                            "Phone Number": [y_phone],
+                            "Status": [y_status]
+                        }
+                    )
+                    st.session_state.youth_beneficiaries = pd.concat(
+                        [st.session_state.youth_beneficiaries, new_youth_row], ignore_index=True
+                    )
+                    st.success(f"Successfully added youth innovator: {y_name}!")
+                else:
+                    st.error("Please provide at least the Full Name and Business Idea Title.")
+
+        st.markdown("---")
+        st.subheader("Registered Youth Innovators Registry")
+        if not st.session_state.youth_beneficiaries.empty:
+            st.dataframe(st.session_state.youth_beneficiaries, use_container_width=True)
+            st.metric(label="Total Registered Youth Trainees", value=len(st.session_state.youth_beneficiaries))
+        else:
+            st.info("No youth beneficiaries registered yet. Target is 400 youth across 10 cohorts (40 per cohort)[cite: 1].")
+
+    elif youth_nav == "Financial & General Budget":
+        st.header("Financial Breakdown & Budget Tracking")
+        st.markdown("Tracking general budget allocations (CEI Contribution & Local Contribution) totaling **140,300,000 RWF (€118,898)**[cite: 1].")
+
+        st.subheader("Budget Allocation vs. Actual Spending (RWF)")
+        df_yb = st.session_state.youth_budget
+        df_yb["Remaining Budget (RWF)"] = df_yb["Allocated Budget (RWF)"] - df_yb["Actual Spent (RWF)"]
+        df_yb["Utilization (%)"] = (df_yb["Actual Spent (RWF)"] / df_yb["Allocated Budget (RWF)"] * 100).round(2)
+
+        st.dataframe(df_yb, use_container_width=True)
+
+        st.markdown("### Log Expense for Youth Project")
+        with st.form("youth_expense_form"):
+            selected_line_y = st.selectbox("Select Budget Line", df_yb["Budget Line"])
+            y_amt = st.number_input("Amount Spent (RWF)", min_value=0.0, step=5000.0)
+            y_log_btn = st.form_submit_button("Record Project Expense")
+
+            if y_log_btn:
+                idx = st.session_state.youth_budget[st.session_state.youth_budget["Budget Line"] == selected_line_y].index[0]
+                st.session_state.youth_budget.loc[idx, "Actual Spent (RWF)"] += y_amt
+                st.success("Expense updated successfully!")
+                st.rerun()
+
+        tot_alloc = df_yb["Allocated Budget (RWF)"].sum()
+        tot_spent = df_yb["Actual Spent (RWF)"].sum()
+
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Total Project Budget", f"{tot_alloc:,.0f} RWF")
+        col2.metric("Total Spent", f"{tot_spent:,.0f} RWF")
+        col3.metric("Utilization Rate", f"{(tot_spent / tot_alloc * 100):.2f}%" if tot_alloc > 0 else "0%")
+
+    elif youth_nav == "Action Learning & Activities":
+        st.header("Action Learning & Incubation Schedule")
+        st.markdown("Track the progress of recruitment, the 5 training modules, and 6-month incubations[cite: 1].")
+
+        st.dataframe(st.session_state.youth_activities, use_container_width=True)
+
+        st.markdown("### Update Module / Activity Status")
+        with st.form("youth_act_form"):
+            sel_act = st.selectbox("Select Phase / Module", st.session_state.youth_activities["Activity Module / Phase"])
+            new_st = st.selectbox("Status", ["Not Started", "In Progress", "Completed"], key="y_st")
+            new_rk = st.text_area("Remarks / Implementation Notes", key="y_rk")
+            upd_btn = st.form_submit_button("Update Status")
+
+            if upd_btn:
+                idx = st.session_state.youth_activities[st.session_state.youth_activities["Activity Module / Phase"] == sel_act].index[0]
+                st.session_state.youth_activities.loc[idx, "Status"] = new_st
+                st.session_state.youth_activities.loc[idx, "Remarks"] = new_rk
+                st.success("Activity progress updated successfully!")
+                st.rerun()
+
+    elif youth_nav == "Project Overview":
+        st.header("Project Proposal Summary (CEI Partnership)")
+        st.markdown(
+            """
+            * **Project Title:** Youth Innovation and Social Entrepreneurship[cite: 1]
+            * **Implementing Body:** Jesuit Urumuri Centre (JUC), Kigali, Gasabo District[cite: 1]
+            * **Partner:** Conferenza Episcopale Italiana (CEI)[cite: 1]
+            * **Target Beneficiaries:** 400 unemployed university and college graduates in Kigali suburbs (10 cohorts of 40 youth each)[cite: 1].
+            * **Lifespan:** 36 Months (3 Years)[cite: 1]
+            * **Total Budget:** 140,300,000 RWF (€118,898)[cite: 1]
+            * **Core Pillars:** Recruitment & Selection, Action Learning (5 Training Modules), and 6-Month Project Incubation[cite: 1].
+            """
+        )
+        st.info("Use the sidebar sub-options to manage youth innovator cohorts, expenses, and action learning modules.")
