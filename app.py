@@ -8,17 +8,87 @@ from sqlalchemy import create_engine, text
 import streamlit as st
 
 # --- CONFIGURATION ---
-st.set_page_config(page_title="JUC Portal", layout="wide")
+st.set_page_config(
+    page_title="JUC Portal - Capacity Building Program",
+    page_icon="📊",
+    layout="wide",
+)
 
 # --- TRANSLATIONS ---
 def get_translations():
     return {
-        "English": {"title": "JUC Portal", "weekly": "Weekly Report", "strat": "Strategic Pillar Report", "dept": "Department", "submit": "Submit", "lang": "Language", "pillar": "Strategic Pillar", "dash": "📊 Bubble Dashboard", "admin": "⚙️ Admin"},
-        "Français": {"title": "Portail JUC", "weekly": "Rapport Hebdomadaire", "strat": "Rapport par Pilier Stratégique", "dept": "Département", "submit": "Soumettre", "lang": "Langue", "pillar": "Pilier Stratégique", "dash": "📊 Tableau de Bord en Bulles", "admin": "⚙️ Admin"},
-        "Kinyarwanda": {"title": "Urubuga JUC", "weekly": "Raporo y'icyumweru", "strat": "Raporo y'Inkingi z'Ingamba", "dept": "Ishami", "submit": "Ohereza", "lang": "Ururimi", "pillar": "Inkingi y'Ingamba", "dash": "📊 Imbonerahamwe y'Utugari", "admin": "⚙️ Ubuyobozi"},
-        "Dutch": {"title": "JUC Portaal", "weekly": "Wekelijks Rapport", "strat": "Strategisch Pijler Rapport", "dept": "Afdeling", "submit": "Indienen", "lang": "Taal", "pillar": "Strategische Pijler", "dash": "📊 Bellen Dashboard", "admin": "⚙️ Beheer"},
-        "Italian": {"title": "Portale JUC", "weekly": "Rapporto Settimanale", "strat": "Rapporto Pilastro Strategico", "dept": "Dipartimento", "submit": "Invia", "lang": "Lingua", "pillar": "Pilastro Strategico", "dash": "📊 Dashboard a Bolle", "admin": "⚙️ Admin"},
-        "Spanish": {"title": "Portal JUC", "weekly": "Informe Semanal", "strat": "Informe de Pilar Estratégico", "dept": "Departamento", "submit": "Enviar", "lang": "Idioma", "pillar": "Pilar Estratégico", "dash": "📊 Panel de Burbujas", "admin": "⚙️ Panel"}
+        "English": {
+            "title": "JUC Portal", 
+            "weekly": "Weekly Report", 
+            "strat": "Strategic Pillar Report", 
+            "dept": "Department", 
+            "submit": "Submit", 
+            "lang": "Language", 
+            "pillar": "Strategic Pillar", 
+            "dash": "📊 Bubble Dashboard", 
+            "admin": "⚙️ Admin",
+            "capacity": "Ngororero Program"
+        },
+        "Français": {
+            "title": "Portail JUC", 
+            "weekly": "Rapport Hebdomadaire", 
+            "strat": "Rapport par Pilier Stratégique", 
+            "dept": "Département", 
+            "submit": "Soumettre", 
+            "lang": "Langue", 
+            "pillar": "Pilier Stratégique", 
+            "dash": "📊 Tableau de Bord en Bulles", 
+            "admin": "⚙️ Admin",
+            "capacity": "Programme Ngororero"
+        },
+        "Kinyarwanda": {
+            "title": "Urubuga JUC", 
+            "weekly": "Raporo y'icyumweru", 
+            "strat": "Raporo y'Inkingi z'Ingamba", 
+            "dept": "Ishami", 
+            "submit": "Ohereza", 
+            "lang": "Ururimi", 
+            "pillar": "Inkingi y'Ingamba", 
+            "dash": "📊 Imbonerahamwe y'Utugari", 
+            "admin": "⚙️ Ubuyobozi",
+            "capacity": "Gahunda ya Ngororero"
+        },
+        "Dutch": {
+            "title": "JUC Portaal", 
+            "weekly": "Wekelijks Rapport", 
+            "strat": "Strategisch Pijler Rapport", 
+            "dept": "Afdeling", 
+            "submit": "Indienen", 
+            "lang": "Taal", 
+            "pillar": "Strategische Pijler", 
+            "dash": "📊 Bellen Dashboard", 
+            "admin": "⚙️ Beheer",
+            "capacity": "Ngororero Programma"
+        },
+        "Italian": {
+            "title": "Portale JUC", 
+            "weekly": "Rapporto Settimanale", 
+            "strat": "Rapporto Pilastro Strategico", 
+            "dept": "Dipartimento", 
+            "submit": "Invia", 
+            "lang": "Lingua", 
+            "pillar": "Pilastro Strategico", 
+            "dash": "📊 Dashboard a Bolle", 
+            "admin": "⚙️ Admin",
+            "capacity": "Programma Ngororero"
+        },
+        "Spanish": {
+            "title": "Portal JUC", 
+            "weekly": "Informe Semanal", 
+            "strat": "Informe de Pilar Estratégico", 
+            "dept": "Departamento", 
+            "submit": "Enviar", 
+            "lang": "Idioma", 
+            "pillar": "Pilar Estratégico", 
+            "dash": "📊 Panel de Burbujas", 
+            "admin": "⚙️ Panel",
+            "capacity": "Programa Ngororero"
+        }
     }
 
 # --- INITIALIZATION ---
@@ -27,6 +97,70 @@ if "authenticated" not in st.session_state: st.session_state.authenticated = Fal
 
 trans = get_translations()
 engine = create_engine(st.secrets["DATABASE_URL"]) if "DATABASE_URL" in st.secrets else None
+
+# --- INITIALIZE SESSION STATE FOR CAPACITY BUILDING PROGRAM ---
+if "beneficiaries" not in st.session_state:
+    st.session_state.beneficiaries = pd.DataFrame(
+        columns=[
+            "Full Name",
+            "Sector (Ngororero)",
+            "Training Module",
+            "Phone Number",
+            "Registration Date",
+        ]
+    )
+
+if "expenses" not in st.session_state:
+    st.session_state.expenses = pd.DataFrame(
+        {
+            "Budget Line": [
+                "Selection of Beneficiaries",
+                "Vocational Training",
+                "Business Management Formation",
+                "SILC Support & Equipment",
+                "Program Implementation (Salaries)",
+            ],
+            "Allocated Budget (RWF)": [
+                750000,
+                31800000,
+                6120000,
+                27400000,
+                16800000,
+            ],
+            "Actual Spent (RWF)": [0, 0, 0, 0, 0],
+        }
+    )
+
+if "activities" not in st.session_state:
+    st.session_state.activities = pd.DataFrame(
+        {
+            "Activity Name": [
+                "Selection of beneficiaries",
+                "Vocational training for income-generating initiatives",
+                "Formation in resource and business management",
+                (
+                    "Formation of Savings and Internal Lending Communities (SILCs)"
+                    " and support"
+                ),
+                "Program Implementation (Salaries)",
+            ],
+            "Planned Timeline": [
+                "Q1 - Q2",
+                "Q2 - Q5",
+                "Q3 - Q6",
+                "Q4 - Q8",
+                "Q1 - Q8",
+            ],
+            "Status": [
+                "Not Started",
+                "Not Started",
+                "Not Started",
+                "Not Started",
+                "Not Started",
+            ],
+            "Progress Notes": ["", "", "", "", ""],
+        }
+    )
 
 # --- AUTOMATIC BACKGROUND IMAGE LOADING ---
 default_bg_name = "background.jpg"
@@ -86,7 +220,6 @@ if not st.session_state.authenticated:
     st.warning("Access Restricted. Please enter the secure password in the sidebar and click **Sign In**.")
     st.stop()
 
-# Add a Sign Out option if already authenticated
 if st.sidebar.button("Sign Out"):
     st.session_state.authenticated = False
     st.rerun()
@@ -141,7 +274,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # --- NAVIGATION ---
-menu = st.sidebar.radio(t["title"], [t["weekly"], t["strat"], t["dash"], t["admin"]])
+menu = st.sidebar.radio(t["title"], [t["weekly"], t["strat"], t["dash"], t["admin"], t["capacity"]])
 
 # --- 1. WEEKLY REPORT ---
 if menu == t["weekly"]:
@@ -311,7 +444,6 @@ elif menu == t["dash"]:
         try:
             df = pd.read_sql("SELECT * FROM juc_reports", engine)
             
-            # --- GLOBAL EXCEL EXPORT ---
             if not df.empty:
                 st.subheader("📥 Global Data Export")
                 excel_buffer = io.BytesIO()
@@ -327,7 +459,6 @@ elif menu == t["dash"]:
                 )
                 st.markdown("---")
 
-            # --- TOP: ADMIN BUBBLE ---
             st.markdown("""
                 <div class="bubble-admin">
                     <h3>🏛️ Administration & Management</h3>
@@ -335,7 +466,6 @@ elif menu == t["dash"]:
                 </div>
             """, unsafe_allow_html=True)
             
-            # --- INTERMEDIATE LEVEL: THE 3 COLUMNS ---
             col_left, col_mid, col_right = st.columns(3)
             
             with col_left:
@@ -370,7 +500,6 @@ elif menu == t["dash"]:
 
             st.markdown("---")
             
-            # --- DETAILS & WORD EXPORT SECTION (GLOBAL SUMMARY OR SPECIFIC) ---
             st.subheader("🔍 Detailed Consultation and Word Reports")
             
             if not df.empty:
@@ -416,11 +545,8 @@ elif menu == t["dash"]:
                             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                             use_container_width=True
                         )
-                
                 else:
-                    # GLOBAL SUMMARY MODE
                     st.markdown("### 📋 Global Summary Overview (All Departments)")
-                    
                     summary_counts = df['category'].value_counts().reset_index()
                     summary_counts.columns = ['Department / Pillar', 'Number of Reports']
                     st.dataframe(summary_counts, use_container_width=True)
@@ -431,9 +557,7 @@ elif menu == t["dash"]:
                         doc.add_heading("JUC Consolidated Report - Global Summary", 0)
                         doc.add_paragraph(f"Generation date: {date.today().strftime('%Y-%m-%d')}")
                         
-                        # Full details section by department
                         doc.add_heading("1. Complete activity details by department and pillar", level=1)
-                        
                         for cat in df['category'].dropna().unique():
                             doc.add_heading(f"Department / Pillar: {cat}", level=2)
                             cat_rows = df[df['category'] == cat]
@@ -496,3 +620,152 @@ elif menu == t["admin"]:
                 conn.commit()
             st.warning("Database completely cleared.")
             st.rerun()
+
+# --- 5. CAPACITY BUILDING PROGRAM (NGORORERO DISTRICT) ---
+elif menu == t["capacity"]:
+    st.title("Capacity Building and Social Empowerment Program")
+    st.subheader("Ngororero District - Monitoring & Evaluation Platform")
+    st.markdown("---")
+
+    cap_nav = st.sidebar.radio(
+        "Ngororero Sections",
+        [
+            "Beneficiary Management",
+            "Financial & Budget Tracker",
+            "Activity Monitoring",
+            "Project Overview",
+        ],
+    )
+
+    if cap_nav == "Beneficiary Management":
+        st.header("Beneficiary Registration & Tracking")
+        st.markdown("Register new vulnerable women beneficiaries in Ngororero District.")
+
+        with st.form("beneficiary_form"):
+            col1, col2 = st.columns(2)
+            with col1:
+                full_name = st.text_input("Full Name")
+                sector = st.text_input("Ngororero Sector")
+            with col2:
+                training_module = st.selectbox(
+                    "Vocational Training Path",
+                    ["Hairdressing", "Culinary Arts", "Tailoring", "Logistics"],
+                )
+                phone = st.text_input("Phone Number")
+
+            submit_btn = st.form_submit_button("Register Beneficiary")
+
+            if submit_btn:
+                if full_name and sector:
+                    new_row = pd.DataFrame(
+                        {
+                            "Full Name": [full_name],
+                            "Sector (Ngororero)": [sector],
+                            "Training Module": [training_module],
+                            "Phone Number": [phone],
+                            "Registration Date": [pd.Timestamp.today().strftime("%Y-%m-%d")],
+                        }
+                    )
+                    st.session_state.beneficiaries = pd.concat(
+                        [st.session_state.beneficiaries, new_row], ignore_index=True
+                    )
+                    st.success(f"Successfully registered {full_name}!")
+                else:
+                    st.error("Please fill in at least the Full Name and Sector.")
+
+        st.markdown("---")
+        st.subheader("Registered Beneficiaries List")
+        if not st.session_state.beneficiaries.empty:
+            st.dataframe(st.session_state.beneficiaries, use_container_width=True)
+            total_ben = len(st.session_state.beneficiaries)
+            st.metric(label="Total Registered Beneficiaries", value=total_ben)
+        else:
+            st.info("No beneficiaries registered yet.")
+
+    elif cap_nav == "Financial & Budget Tracker":
+        st.header("Financial Capacity & Budget Utilization")
+        st.markdown("Monitor allocated budgets versus actual expenditures across project lines.")
+
+        st.subheader("Current Budget Overview (RWF)")
+        df_expenses = st.session_state.expenses
+        df_expenses["Remaining Budget (RWF)"] = (
+            df_expenses["Allocated Budget (RWF)"]
+            - df_expenses["Actual Spent (RWF)"]
+        )
+        df_expenses["Utilization (%)"] = (
+            df_expenses["Actual Spent (RWF)"]
+            / df_expenses["Allocated Budget (RWF)"]
+            * 100
+        ).round(2)
+
+        st.dataframe(df_expenses, use_container_width=True)
+
+        st.markdown("### Log an Expense")
+        with st.form("expense_form"):
+            selected_line = st.selectbox(
+                "Select Budget Line", df_expenses["Budget Line"]
+            )
+            expense_amount = st.number_input(
+                "Amount Spent (RWF)", min_value=0.0, step=1000.0
+            )
+            log_btn = st.form_submit_button("Record Expense")
+
+            if log_btn:
+                idx = st.session_state.expenses[
+                    st.session_state.expenses["Budget Line"] == selected_line
+                ].index[0]
+                st.session_state.expenses.loc[idx, "Actual Spent (RWF)"] += expense_amount
+                st.rerun()
+
+        total_allocated = df_expenses["Allocated Budget (RWF)"].sum()
+        total_spent = df_expenses["Actual Spent (RWF)"].sum()
+
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Total Budget", f"{total_allocated:,.0f} RWF")
+        col2.metric("Total Spent", f"{total_spent:,.0f} RWF")
+        col3.metric(
+            "Overall Utilization",
+            f"{(total_spent / total_allocated * 100):.2f}%"
+            if total_allocated > 0
+            else "0%",
+        )
+
+    elif cap_nav == "Activity Monitoring":
+        st.header("Project Activity Monitoring")
+        st.markdown("Track execution status and progress notes for planned activities.")
+
+        st.subheader("Master Activity Schedule & Status")
+        st.dataframe(st.session_state.activities, use_container_width=True)
+
+        st.markdown("### Update Activity Status")
+        with st.form("activity_form"):
+            selected_activity = st.selectbox(
+                "Select Activity", st.session_state.activities["Activity Name"]
+            )
+            new_status = st.selectbox(
+                "Update Status", ["Not Started", "In Progress", "Completed"]
+            )
+            new_notes = st.text_area("Progress Notes / Remarks")
+            update_btn = st.form_submit_button("Save Activity Update")
+
+            if update_btn:
+                idx = st.session_state.activities[
+                    st.session_state.activities["Activity Name"] == selected_activity
+                ].index[0]
+                st.session_state.activities.loc[idx, "Status"] = new_status
+                st.session_state.activities.loc[idx, "Progress Notes"] = new_notes
+                st.success("Activity status updated successfully!")
+                st.rerun()
+
+    elif cap_nav == "Project Overview":
+        st.header("Project Summary & Metadata")
+        st.markdown(
+            """
+            * **Project Name:** Capacity Building and Social Empowerment Program for Vulnerable Women
+            * **Location:** Ngororero District, Rwanda
+            * **Start Date:** April 2026
+            * **Implementing Body:** Jesuit Urumuri Centre (JUC)
+            * **Total Approved Budget:** 82,870,000 RWF (53,433 €)
+            """
+        )
+        st.info("Use the sidebar sub-options to switch between beneficiary management, financial tracking, and activity monitoring.")
