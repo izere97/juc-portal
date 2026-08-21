@@ -248,7 +248,7 @@ bg_css = f"url('data:image/jpeg;base64,{st.session_state.bg_base64}')" if st.ses
 # Application du nouveau style
 st.markdown(f"""
     <style>
-    /* 1. Fond fixe (Image floue) */
+    /* 1. Fond fixe (Image floue et assombrie) */
     .stApp {{ background: none !important; }}
     .stApp::before {{
         content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -260,20 +260,20 @@ st.markdown(f"""
         background-color: rgba(0, 0, 0, 0.7); z-index: -1;
     }}
 
-    /* 2. Texte global par défaut (fond sombre) */
+    /* 2. Texte global par défaut (pour le fond sombre) */
     div, p, h1, h2, h3, h4, span, label, li {{
         color: #ffffff !important;
         text-shadow: 1px 1px 2px rgba(0,0,0,1);
     }}
 
-    /* 3. --- ICI : TEXTE NOIR FONCÉ DANS LES ESPACES BLANCS --- */
-    /* Cible les inputs, textareas et les éléments de sélection */
+    /* 3. Texte noir foncé dans les espaces blancs */
     .main .block-container input, 
     .main .block-container textarea,
     .main .block-container div[role="combobox"],
-    .main .block-container div[data-baseweb="select"] {{
-        color: #000000 !important; /* Noir foncé */
-        font-weight: 600 !important; /* Gras pour plus de visibilité */
+    .main .block-container div[data-baseweb="select"],
+    .main .block-container div[data-baseweb="base-input"] > div {{
+        color: #000000 !important; 
+        font-weight: 600 !important; 
         background-color: #ffffff !important;
     }}
 
@@ -284,7 +284,7 @@ st.markdown(f"""
         font-weight: bold !important;
     }}
 
-    /* 4. SIDEBAR EN BLEU CLAIR */
+    /* 4. Sidebar en bleu clair */
     [data-testid="stSidebar"] {{ background-color: #f0f9ff !important; }}
     [data-testid="stSidebar"] div, [data-testid="stSidebar"] p, [data-testid="stSidebar"] span {{
         color: #0369a1 !important;
