@@ -635,6 +635,7 @@ elif menu == t["admin"]:
             st.error(f"Une erreur est survenue : {e}")
 
 # --- 4. ADMIN ---
+# --- 4. ADMIN ---
 elif menu == t["admin"]:
     st.header(t["admin"])
     if engine:
@@ -668,7 +669,7 @@ elif menu == t["admin"]:
                     conn.commit()
                     st.success(f"Record ID {report_id_to_delete} deleted successfully.")
                     st.rerun()
-                    
+                        
         except Exception as e:
             st.info("Loading administration tools...")
 
@@ -679,7 +680,6 @@ elif menu == t["admin"]:
                 conn.commit()
                 st.success("All records deleted successfully.")
                 st.rerun()
-
             # ... (la suite de votre code pour supprimer reste inchangée)
                 
                 st.subheader("Delete a specific record by ID")
