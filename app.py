@@ -635,67 +635,55 @@ elif menu == t["admin"]:
             st.error(f"Une erreur est survenue : {e}")
 
 # --- 4. ADMIN ---
-# --- 4. ADMIN ---
 elif menu == t["admin"]:
     st.header(t["admin"])
     if engine:
-        df = pd.read_sql("SELECT id, submission_date, staff_name, report_type, category, completed_activities, pending_issues, challenges FROM juc_reports ORDER BY submission_date DESC", engine)
-        if df.empty:
-            st.info("The database is currently empty.")
-        else:
-            df["submission_date"] = pd.to_datetime(df["submission_date"])
+        try:
+            df = pd.read_sql("SELECT id, submission_date, staff_name, report_type, category, completed_activities, pending_issues, challenges FROM juc_reports ORDER BY submission_date DESC", engine)
             
-            st.subheader("Filtrer les rapports par date")
-            date_selectionnee = st.date_input("Choisir une date pour filtrer les rapports")
-            
-            df_filtre = df[df["submission_date"].dt.date == date_selectionnee]
-            
-            if not df_filtre.empty:
-                st.success(f"Affichage des rapports pour le : {date_selectionnee}")
-                st.dataframe(df_filtre, use_container_width=True)
+            if df.empty:
+                st.warning("La base de données est actuellement vide. Aucun rapport n'a encore été soumis.")
             else:
-                st.warning(f"Aucun rapport trouvé pour la date : {date_selectionnee}")
-            
-            if st.button("Afficher tous les rapports"):
-                st.dataframe(df, use_container_width=True)
-
-        st.subheader("Delete a specific record by ID")
-        report_id_to_delete = st.number_input("Enter ID to delete", min_value=0, step=1)
-
-        if st.button("Delete Selected Row"):
-            with engine.connect() as conn:
-                conn.execute(text("DELETE FROM juc_reports WHERE id = :id"), {"id": report_id_to_delete})
-                conn.commit()
-                st.success(f"Record ID {report_id_to_delete} deleted successfully.")
-                st.rerun()
-
-        st.markdown("---")
-        if st.button("🗑️ DELETE ALL (Total Reset)"):
-            with engine.connect() as conn:
-                conn.execute(text("DELETE FROM juc_reports"))
-                conn.commit()
-                st.success("All records deleted successfully.")
-                st.rerun()
-            # ... (la suite de votre code pour supprimer reste inchangée)
+                df["submission_date"] = pd.to_datetime(df["submission_date"])
                 
-                st.subheader("Delete a specific record by ID")
-                report_id_to_delete = st.number_input("Enter ID to delete", min_value=0, step=1)
+                st.subheader("Filtrer les rapports par date")
+                date_selectionnee = st.date_input("Choisir une date pour filtrer les rapports")
                 
-                if st.button("Delete Selected Row"):
-                    with engine.connect() as conn:
-                        conn.execute(text("DELETE FROM juc_reports WHERE id = :id"), {"id": report_id_to_delete})
-                        conn.commit()
-                    st.success(f"Record ID {report_id_to_delete} deleted successfully.")
+                df_filtre = df[df["submission_date"].dt.date == date_selectionnee]
+                
+                if not df_filtre.empty:
+                    st.success(f"Affichage des rapports pour le : {date_selectionnee}")
+                    st.dataframe(df_filtre, use_container_width=True)
+                else:
+                    st.warning(f"Aucun rapport trouvé pour la date : {date_selectionnee}")
+                
+                if st.button("Afficher tous les rapports"):
+                    st.dataframe(df, use_container_width=True)
+                else:
+                    # Afficher par défaut le tableau complet si aucun filtre strict n'est masqué
+                    st.markdown("### Tous les rapports enregistrés")
+                    st.dataframe(df, use_container_width=True)
+
+            st.subheader("Supprimer un rapport spécifique par ID")
+            report_id_to_delete = st.number_input("Entrer l'ID à supprimer", min_value=0, step=1)
+
+            if st.button("Supprimer la ligne sélectionnée"):
+                with engine.connect() as conn:
+                    conn.execute(text("DELETE FROM juc_reports WHERE id = :id"), {"id": report_id_to_delete})
+                    conn.commit()
+                    st.success(f"Rapport ID {report_id_to_delete} supprimé avec succès.")
                     st.rerun()
-            st.info("Loading administration tools...")
-            
-        st.markdown("---")
-        if st.button("🗑️ DELETE ALL (Total Reset)"):
-            with engine.connect() as conn:
-                conn.execute(text("DELETE FROM juc_reports"))
-                conn.commit()
-            st.warning("Database completely cleared.")
-            st.rerun()
+
+            st.markdown("---")
+            if st.button("🗑️ TOUT SUPPRIMER (Réinitialisation totale)"):
+                with engine.connect() as conn:
+                    conn.execute(text("DELETE FROM juc_reports"))
+                    conn.commit()
+                    st.success("Tous les rapports ont été supprimés.")
+                    st.rerun()
+                    
+        except Exception as e:
+            st.error(f"Erreur lors de la lecture de la base de données : {e}")
 
 # --- 5. CAPACITY BUILDING PROGRAM (NGORORERO DISTRICT) ---
 elif menu == t["capacity"]:
