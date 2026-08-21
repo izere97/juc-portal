@@ -248,53 +248,37 @@ bg_css = f"url('data:image/jpeg;base64,{st.session_state.bg_base64}')" if st.ses
 # Application du nouveau style
 st.markdown(f"""
     <style>
-    /* --- FOND FIXE --- */
-    .stApp {{
-        background: none !important;
-    }}
+    /* 1. Fond fixe (Image floue) */
+    .stApp {{ background: none !important; }}
     .stApp::before {{
-        content: "";
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background-image: {bg_css} !important;
-        background-size: cover !important;
-        background-position: center !important;
-        filter: blur(8px);
-        z-index: -2;
+        content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-image: {bg_css} !important; background-size: cover !important;
+        background-position: center !important; filter: blur(8px); z-index: -2;
     }}
     .stApp::after {{
-        content: "";
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background-color: rgba(0, 0, 0, 0.7);
-        z-index: -1;
+        content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.7); z-index: -1;
     }}
 
-    /* --- BLOC BLANC CENTRAL --- */
+    /* 2. Bloc central */
     .main .block-container {{
         background-color: #ffffff !important; 
-        padding: 2.5rem;
-        border-radius: 15px;
+        padding: 2.5rem; border-radius: 15px;
     }}
 
-    /* --- TOUT CE QUI EST À L'EXTÉRIEUR DU BLOC BLANC --- */
-    /* On cible tout texte qui n'est PAS dans le block-container pour le forcer en blanc */
-    div:not(.main .block-container) p, 
-    div:not(.main .block-container) h1, 
-    div:not(.main .block-container) h2, 
-    div:not(.main .block-container) h3,
-    .stMarkdownContainer {{
-        color: #ffffff !important;
-        text-shadow: 1px 1px 2px rgba(0,0,0,1);
-    }}
+    /* 3. Textes extérieurs en blanc */
+    div:not(.main .block-container) p, div:not(.main .block-container) h1, 
+    div:not(.main .block-container) h2, div:not(.main .block-container) h3,
+    .stMarkdownContainer {{ color: #ffffff !important; text-shadow: 1px 1px 2px rgba(0,0,0,1); }}
 
-    /* --- TOUT CE QUI EST À L'INTÉRIEUR DU BLOC BLANC --- */
-    /* On force explicitement le noir pour ces éléments spécifiques */
-    .main .block-container label, 
-    .main .block-container input, 
-    .main .block-container textarea, 
-    .main .block-container div[role="presentation"] {{
-        color: #000000 !important;
+    /* 4. Textes intérieurs en noir */
+    .main .block-container label, .main .block-container input, 
+    .main .block-container textarea {{ color: #000000 !important; }}
+
+    /* 5. NOUVEAU : Barre latérale en bleu clair */
+    [data-testid="stSidebar"] {{ background-color: #ffffff !important; }}
+    [data-testid="stSidebar"] p, [data-testid="stSidebar"] div, [data-testid="stSidebar"] span {{
+        color: #0369a1 !important; font-weight: 600 !important;
     }}
     </style>
 """, unsafe_allow_html=True)
