@@ -305,7 +305,7 @@ st.markdown(f"""
 # ... (le reste de ton code)
 
 # --- NAVIGATION ---
-menu = st.sidebar.radio("Navigation", [t["home"], t["weekly"], t["strat"], t["dash"], t["admin"], t["capacity"], t["youth_proj"]])
+menu = st.sidebar.radio("Navigation", [t["weekly"], t["strat"], t["dash"], t["admin"], t["capacity"], t["youth_proj"]])
 # --- 1. WEEKLY REPORT ---
 if menu == t["weekly"]:
     st.header(t["weekly"])
