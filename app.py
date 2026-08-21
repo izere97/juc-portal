@@ -248,7 +248,7 @@ bg_css = f"url('data:image/jpeg;base64,{st.session_state.bg_base64}')" if st.ses
 # Application du nouveau style
 st.markdown(f"""
     <style>
-    /* 1. Image de fond fixe, floutée et assombrie */
+    /* --- FOND FIXE --- */
     .stApp {{
         background: none !important;
     }}
@@ -270,32 +270,31 @@ st.markdown(f"""
         z-index: -1;
     }}
 
-    /* 2. Conteneur principal (Le bloc blanc) */
+    /* --- BLOC BLANC CENTRAL --- */
     .main .block-container {{
         background-color: #ffffff !important; 
         padding: 2.5rem;
         border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }}
 
-    /* 3. Textes à L'INTÉRIEUR du bloc blanc (Labels et inputs) */
+    /* --- TOUT CE QUI EST À L'EXTÉRIEUR DU BLOC BLANC --- */
+    /* On cible tout texte qui n'est PAS dans le block-container pour le forcer en blanc */
+    div:not(.main .block-container) p, 
+    div:not(.main .block-container) h1, 
+    div:not(.main .block-container) h2, 
+    div:not(.main .block-container) h3,
+    .stMarkdownContainer {{
+        color: #ffffff !important;
+        text-shadow: 1px 1px 2px rgba(0,0,0,1);
+    }}
+
+    /* --- TOUT CE QUI EST À L'INTÉRIEUR DU BLOC BLANC --- */
+    /* On force explicitement le noir pour ces éléments spécifiques */
     .main .block-container label, 
     .main .block-container input, 
     .main .block-container textarea, 
-    .main .block-container div[data-baseweb="select"] {{
+    .main .block-container div[role="presentation"] {{
         color: #000000 !important;
-        font-weight: 500 !important;
-    }}
-
-    /* 4. Textes à L'EXTÉRIEUR du bloc blanc (Titres et descriptions) */
-    /* On les force en blanc pour qu'ils soient lisibles sur le fond sombre */
-    h1, h2, h3, .stMarkdown p {{
-        color: #ffffff !important;
-    }}
-    
-    /* Si besoin, on peut ajouter une légère ombre portée pour améliorer la lecture */
-    h1, h2, h3, .stMarkdown p {{
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
     }}
     </style>
 """, unsafe_allow_html=True)
