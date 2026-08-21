@@ -260,25 +260,28 @@ st.markdown(f"""
         background-color: rgba(0, 0, 0, 0.7); z-index: -1;
     }}
 
-    /* 2. Bloc central */
-    .main .block-container {{
-        background-color: #ffffff !important; 
-        padding: 2.5rem; border-radius: 15px;
+    /* 2. FORCER TOUT LE TEXTE EN BLANC PAR DÉFAUT (sur le fond sombre) */
+    div, p, h1, h2, h3, h4, span, label, li {{
+        color: #ffffff !important;
+        text-shadow: 1px 1px 2px rgba(0,0,0,1);
     }}
 
-    /* 3. Textes extérieurs en blanc */
-    div:not(.main .block-container) p, div:not(.main .block-container) h1, 
-    div:not(.main .block-container) h2, div:not(.main .block-container) h3,
-    .stMarkdownContainer {{ color: #ffffff !important; text-shadow: 1px 1px 2px rgba(0,0,0,1); }}
+    /* 3. Barrière : RÉTABLIR LE NOIR UNIQUEMENT DANS LE BLOC CENTRAL */
+    .main .block-container div, 
+    .main .block-container p, 
+    .main .block-container span, 
+    .main .block-container label,
+    .main .block-container input {{
+        color: #000000 !important;
+        text-shadow: none !important;
+    }}
 
-    /* 4. Textes intérieurs en noir */
-    .main .block-container label, .main .block-container input, 
-    .main .block-container textarea {{ color: #000000 !important; }}
-
-    /* 5. NOUVEAU : Barre latérale en bleu clair */
-    [data-testid="stSidebar"] {{ background-color: #ffffff !important; }}
-    [data-testid="stSidebar"] p, [data-testid="stSidebar"] div, [data-testid="stSidebar"] span {{
-        color: #0369a1 !important; font-weight: 600 !important;
+    /* 4. SIDEBAR EN BLEU CLAIR */
+    [data-testid="stSidebar"] {{ background-color: #f0f9ff !important; }}
+    [data-testid="stSidebar"] div, [data-testid="stSidebar"] p, [data-testid="stSidebar"] span {{
+        color: #0369a1 !important;
+        text-shadow: none !important;
+        font-weight: 600 !important;
     }}
     </style>
 """, unsafe_allow_html=True)
