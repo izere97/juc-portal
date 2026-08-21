@@ -625,83 +625,84 @@ elif menu == t["dash"]:
 
 # --- 4. ADMIN ---
 elif menu == t["admin"]:
-    st.header(t["admin"])
-    if engine:
-        try:
-            df = pd.read_sql("SELECT id, submission_date, staff_name, report_type, category, completed_activities, pending_issues, challenges FROM juc_reports ORDER BY submission_date DESC", engine)
-            # --- 4. ADMIN ---
-# (Fin de la section précédente...)
-        except Exception as e:
-            st.error(f"Une erreur est survenue : {e}")
-
-# --- 4. ADMIN ---
-elif menu == t["admin"]:
-    st.header("Administration du Portail")
+    st.header("Administration & Résumé des Rapports")
     
-    if engine:
-        try:
-            # 1. Lecture de toutes les données
+    try:
+        # Chargement sécurisé des données depuis la base
+        if 'engine' in globals() and engine is not None:
             df = pd.read_sql("SELECT * FROM juc_reports", engine)
+        else:
+            import sqlite3
+            conn = sqlite3.connect("juc_reports.db")
+            df = pd.read_sql("SELECT * FROM juc_reports", conn)
+            conn.close()
             
-            if df.empty:
-                st.info("La base de données est vide.")
-            else:
+        if df.empty:
+            st.warning("La base de données est actuellement vide. Aucun rapport n'a été soumis.")
+        else:
+            # Conversion de la date si elle existe
+            if "submission_date" in df.columns:
                 df["submission_date"] = pd.to_datetime(df["submission_date"])
-                
-                # --- A. GRAPHIQUE / RÉSUMÉ DU CONTENU ---
-                st.subheader("📊 Résumé analytique du contenu")
-                
-                # On résume par type de rapport ou par catégorie pour voir le contenu global
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.markdown("**Volume par Type de Rapport**")
-                    if "report_type" in df.columns:
-                        type_counts = df['report_type'].value_counts()
-                        st.bar_chart(type_counts)
-                with col2:
-                    st.markdown("**Volume par Catégorie / Département**")
-                    if "category" in df.columns:
-                        cat_counts = df['category'].value_counts()
-                        st.bar_chart(cat_counts)
-
-                # --- B. FILTRAGE ET TRI PAR DATE DE SOUMISSION ---
-                st.subheader("📅 Filtrer les rapports par date de soumission")
-                
-                # Sélecteur de date
-                date_selectionnee = st.date_input("Choisir une date spécifique")
-                
-                # Filtrage
+            
+            st.success(f"Nombre total de rapports enregistrés : {len(df)}")
+            
+            # --- 1. FILTRAGE PAR DATE DE SOUMISSION ---
+            st.subheader("📅 Trier et filtrer par date")
+            if "submission_date" in df.columns:
+                dates_uniques = sorted(df["submission_date"].dt.date.unique(), reverse=True)
+                date_selectionnee = st.selectbox("Choisir une date de soumission", options=dates_uniques)
                 df_filtre = df[df["submission_date"].dt.date == date_selectionnee]
+                st.markdown(f"**Affichage des rapports pour le : {date_selectionnee}**")
+            else:
+                df_filtre = df
                 
-                if not df_filtre.empty:
-                    st.success(f"Affichage des rapports soumis le : {date_selectionnee}")
-                    st.dataframe(df_filtre, use_container_width=True)
-                else:
-                    st.warning(f"Aucun rapport trouvé pour la date du {date_selectionnee}. Voici l'ensemble des rapports :")
-                    st.dataframe(df, use_container_width=True)
-
-                # --- C. TÉLÉCHARGEMENT DES DONNÉES ---
-                st.subheader("📥 Téléchargement")
-                csv_data = df.to_csv(index=False).encode('utf-8')
-                st.download_button(
-                    label="Télécharger tous les rapports (CSV)",
-                    data=csv_data,
-                    file_name="juc_rapports_complet.csv",
-                    mime="text/csv"
-                )
-
-                # --- D. GESTION DE LA BASE DE DONNÉES ---
-                with st.expander("⚙️ Outils de maintenance (Suppression)"):
-                    report_id_to_delete = st.number_input("Entrer l'ID du rapport à supprimer", min_value=0, step=1)
-                    if st.button("Supprimer cette ligne"):
+            st.dataframe(df_filtre, use_container_width=True)
+            
+            # --- 2. TÉLÉCHARGEMENT DES DONNÉES ---
+            st.subheader("📥 Téléchargement")
+            csv_data = df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="Télécharger l'ensemble des rapports en CSV",
+                data=csv_data,
+                file_name="juc_rapports_complets.csv",
+                mime="text/csv"
+            )
+            
+            # --- 3. GRAPHIQUES DE RÉSUMÉ (FIGURES) ---
+            st.subheader("📊 Résumé visuel des rapports soumis")
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                if "category" in df.columns:
+                    st.markdown("**Répartition par Catégorie / Département**")
+                    cat_counts = df['category'].value_counts()
+                    st.bar_chart(cat_counts)
+                    
+            with col2:
+                if "report_type" in df.columns:
+                    st.markdown("**Répartition par Type de Rapport**")
+                    type_counts = df['report_type'].value_counts()
+                    st.bar_chart(type_counts)
+            
+            # --- 4. GESTION / SUPPRESSION ---
+            with st.expander("⚙️ Outils de maintenance (Suppression d'un rapport)"):
+                report_id_to_delete = st.number_input("Entrer l'ID du rapport à supprimer", min_value=0, step=1)
+                if st.button("Supprimer ce rapport"):
+                    if 'engine' in globals() and engine is not None:
                         with engine.connect() as conn:
                             conn.execute(text("DELETE FROM juc_reports WHERE id = :id"), {"id": report_id_to_delete})
                             conn.commit()
-                            st.success(f"Rapport ID {report_id_to_delete} supprimé.")
-                            st.rerun()
-
-        except Exception as e:
-            st.error(f"Erreur lors du chargement des données : {e}")
+                    else:
+                        conn = sqlite3.connect("juc_reports.db")
+                        conn.execute("DELETE FROM juc_reports WHERE id = ?", (report_id_to_delete,))
+                        conn.commit()
+                        conn.close()
+                    st.success(f"Rapport ID {report_id_to_delete} supprimé.")
+                    st.rerun()
+                    
+    except Exception as e:
+        st.error(f"Erreur lors du chargement de la section Admin : {e}")
+        st.info("Vérifiez que la table 'juc_reports' existe bien dans votre base de données.")
 # --- 5. CAPACITY BUILDING PROGRAM (NGORORERO DISTRICT) ---
 elif menu == t["capacity"]:
     st.title("Capacity Building and Social Empowerment Program")
