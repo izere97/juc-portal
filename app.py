@@ -248,58 +248,47 @@ bg_css = f"url('data:image/jpeg;base64,{st.session_state.bg_base64}')" if st.ses
 # Application du nouveau style
 st.markdown(f"""
     <style>
-    /* 1. Image de fond : Assombrie et floutée */
+    /* 1. On retire le filtre global et on utilise une pseudo-couche pour l'image */
     .stApp {{
-        background-image: {bg_css} !important;
-        background-size: cover !important;
-        background-position: center center !important;
-        background-repeat: no-repeat !important;
-        background-attachment: fixed !important;
-        filter: blur(4px); /* Flou léger sur l'image pour la rendre moins dominante */
+        background: none !important; /* On annule le fond par défaut */
     }}
-    
-    /* Le voile : On passe à 0.7 pour qu'il soit beaucoup plus sombre/opaque */
+
+    /* On crée une couche fixe pour l'image de fond avec le flou */
     .stApp::before {{
         content: "";
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
-        background-color: rgba(0, 0, 0, 0.75); 
+        background-image: {bg_css} !important;
+        background-size: cover !important;
+        background-position: center !important;
+        filter: blur(8px); /* Flou uniquement sur l'image */
+        z-index: -2;
+    }}
+
+    /* On ajoute un voile sombre par-dessus l'image floutée */
+    .stApp::after {{
+        content: "";
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.7); /* Voile sombre */
         z-index: -1;
     }}
 
-    /* 2. Conteneur principal : Plus opaque pour bien détacher du fond */
+    /* 2. Conteneur principal : Reste parfaitement net */
     .main .block-container {{
-        background: rgba(255, 255, 255, 0.98); 
-        padding: 2.5rem;
+        background: rgba(255, 255, 255, 0.95); 
+        padding: 2rem;
         border-radius: 15px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-        border: 2px solid #bae6fd;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
     }}
 
-    /* Formulaires : Bleu très clair, très lisible */
-    div[data-testid="stForm"] {{
-        background: rgba(240, 249, 255, 0.98) !important;
-        padding: 25px;
-        border-radius: 12px;
-        border: 1px solid #bae6fd !important;
-    }}
-
-    /* Cartes en bulles */
-    .bubble-card {{
-        background: #ffffff;
-        border: 1px solid #e0f2fe;
-        border-radius: 20px;
-        padding: 20px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }}
-
-    /* 3. Typographie : Contraste maximal */
-    h1, h2, h3, h4, p, label, .stMarkdown {{
-        color: #1e293b !important;
+    /* 3. Texte et titres : Bien nets */
+    h1, h2, h3, p, label {{
+        color: #0f172a !important;
     }}
     
     h1, h2 {{
-        color: #0284c7 !important; /* Un bleu un peu plus profond pour les titres */
+        color: #0369a1 !important;
     }}
     </style>
 """, unsafe_allow_html=True)
