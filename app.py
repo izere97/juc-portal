@@ -243,8 +243,12 @@ if st.sidebar.button("Sign Out"):
 
 bg_css = f"url('data:image/jpeg;base64,{st.session_state.bg_base64}')" if st.session_state.bg_base64 else "none"
 
+# ... (ton code précédent)
+
+# Application du nouveau style
 st.markdown(f"""
     <style>
+    /* 1. Réduction de la luminosité de l'image de fond */
     .stApp {{
         background-image: {bg_css} !important;
         background-size: cover !important;
@@ -252,43 +256,66 @@ st.markdown(f"""
         background-repeat: no-repeat !important;
         background-attachment: fixed !important;
     }}
+    
+    /* Ajout d'un calque sombre pour diminuer la luminosité du fond */
+    .stApp::before {{
+        content: "";
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.4); 
+        z-index: -1;
+    }}
+
+    /* 2. Embellissement des conteneurs */
     .main .block-container {{
-        background: rgba(255, 255, 255, 0.93);
+        background: rgba(255, 255, 255, 0.95);
         padding: 2.5rem;
         border-radius: 15px;
         backdrop-filter: blur(8px);
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        border: 2px solid #bae6fd;
     }}
+
+    /* Formulaires en bleu clair élégant */
     div[data-testid="stForm"] {{
-        background: rgba(255, 255, 258, 0.98) !important;
+        background: rgba(240, 249, 255, 0.95) !important;
         padding: 25px;
         border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        border: 1px solid rgba(226, 232, 240, 1);
+        border: 1px solid #7dd3fc !important;
     }}
+
+    /* Cartes en bulles améliorées */
     .bubble-card {{
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        border: 2px solid #cbd5e1;
+        background: white;
+        border: 2px solid #bae6fd;
         border-radius: 20px;
         padding: 20px;
         text-align: center;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2);
     }}
+
     .bubble-admin {{
-        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-        border: 2px solid #3b82f6;
+        background: #f0f9ff;
+        border: 2px solid #38bdf8;
         border-radius: 25px;
         padding: 25px;
         text-align: center;
-        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.15);
-        margin-bottom: 25px;
+        color: #0369a1 !important;
     }}
-    h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown {{
+
+    /* 3. Lisibilité du texte */
+    h1, h2, h3, h4, p, label {{
         color: #0f172a !important;
+    }}
+    
+    h1, h2 {{
+        color: #0369a1 !important; 
+        font-weight: 700;
     }}
     </style>
 """, unsafe_allow_html=True)
+
+# ... (le reste de ton code)
 
 # --- NAVIGATION ---
 menu = st.sidebar.radio(t["title"], [t["weekly"], t["strat"], t["dash"], t["admin"], t["capacity"], t["youth_proj"]])
