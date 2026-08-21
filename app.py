@@ -248,69 +248,58 @@ bg_css = f"url('data:image/jpeg;base64,{st.session_state.bg_base64}')" if st.ses
 # Application du nouveau style
 st.markdown(f"""
     <style>
-    /* 1. Réduction de la luminosité de l'image de fond */
+    /* 1. Image de fond : Assombrie et floutée */
     .stApp {{
         background-image: {bg_css} !important;
         background-size: cover !important;
         background-position: center center !important;
         background-repeat: no-repeat !important;
         background-attachment: fixed !important;
+        filter: blur(4px); /* Flou léger sur l'image pour la rendre moins dominante */
     }}
     
-    /* Ajout d'un calque sombre pour diminuer la luminosité du fond */
+    /* Le voile : On passe à 0.7 pour qu'il soit beaucoup plus sombre/opaque */
     .stApp::before {{
         content: "";
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
-        background-color: rgba(0, 0, 0, 0.4); 
+        background-color: rgba(0, 0, 0, 0.75); 
         z-index: -1;
     }}
 
-    /* 2. Embellissement des conteneurs */
+    /* 2. Conteneur principal : Plus opaque pour bien détacher du fond */
     .main .block-container {{
-        background: rgba(255, 255, 255, 0.95);
+        background: rgba(255, 255, 255, 0.98); 
         padding: 2.5rem;
         border-radius: 15px;
-        backdrop-filter: blur(8px);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
         border: 2px solid #bae6fd;
     }}
 
-    /* Formulaires en bleu clair élégant */
+    /* Formulaires : Bleu très clair, très lisible */
     div[data-testid="stForm"] {{
-        background: rgba(240, 249, 255, 0.95) !important;
+        background: rgba(240, 249, 255, 0.98) !important;
         padding: 25px;
         border-radius: 12px;
-        border: 1px solid #7dd3fc !important;
+        border: 1px solid #bae6fd !important;
     }}
 
-    /* Cartes en bulles améliorées */
+    /* Cartes en bulles */
     .bubble-card {{
-        background: white;
-        border: 2px solid #bae6fd;
+        background: #ffffff;
+        border: 1px solid #e0f2fe;
         border-radius: 20px;
         padding: 20px;
-        text-align: center;
-        box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }}
 
-    .bubble-admin {{
-        background: #f0f9ff;
-        border: 2px solid #38bdf8;
-        border-radius: 25px;
-        padding: 25px;
-        text-align: center;
-        color: #0369a1 !important;
-    }}
-
-    /* 3. Lisibilité du texte */
-    h1, h2, h3, h4, p, label {{
-        color: #0f172a !important;
+    /* 3. Typographie : Contraste maximal */
+    h1, h2, h3, h4, p, label, .stMarkdown {{
+        color: #1e293b !important;
     }}
     
     h1, h2 {{
-        color: #0369a1 !important; 
-        font-weight: 700;
+        color: #0284c7 !important; /* Un bleu un peu plus profond pour les titres */
     }}
     </style>
 """, unsafe_allow_html=True)
