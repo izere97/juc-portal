@@ -7,95 +7,127 @@ from docx import Document
 from sqlalchemy import create_engine, text
 import streamlit as st
 
-# --- CONFIGURATION ---
+# --- PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="JUC Portal - Multi-Project Management",
+    page_title="JUC Staff & M&E Portal",
     page_icon="📊",
-    layout="wide",
+    layout="wide"
 )
 
-# --- TRANSLATIONS ---
+# --- TRANSLATIONS FUNCTION ---
 def get_translations():
     return {
         "English": {
-            "title": "JUC Portal", 
-            "weekly": "Weekly Report", 
-            "strat": "Strategic Pillar Report", 
-            "dept": "Department", 
-            "submit": "Submit", 
-            "lang": "Language", 
-            "pillar": "Strategic Pillar", 
-            "dash": "📊 Bubble Dashboard", 
-            "admin": "⚙️ Admin",
+            "title": "JUC Portal",
+            "home": "Welcome JUC M&E PORTAL",
+            "weekly": "Weekly Report",
+            "strat": "Strategic Pillar Report",
+            "dash": "Bubble Dashboard",
+            "admin": "Admin",
             "capacity": "Ngororero Program",
             "youth_proj": "Youth Innovation (Kigali)"
         },
         "Français": {
-            "title": "Portail JUC", 
-            "weekly": "Rapport Hebdomadaire", 
-            "strat": "Rapport par Pilier Stratégique", 
-            "dept": "Département", 
-            "submit": "Soumettre", 
-            "lang": "Langue", 
-            "pillar": "Pilier Stratégique", 
-            "dash": "📊 Tableau de Bord en Bulles", 
-            "admin": "⚙️ Admin",
+            "title": "Portail JUC",
+            "home": "Bienvenue Portail S&E JUC",
+            "weekly": "Rapport Hebdomadaire",
+            "strat": "Rapport par Pilier Stratégique",
+            "dash": "Tableau de Bord en Bulles",
+            "admin": "Admin",
             "capacity": "Programme Ngororero",
             "youth_proj": "Innovation Jeunesse (Kigali)"
         },
         "Kinyarwanda": {
-            "title": "Urubuga JUC", 
-            "weekly": "Raporo y'icyumweru", 
-            "strat": "Raporo y'Inkingi z'Ingamba", 
-            "dept": "Ishami", 
-            "submit": "Ohereza", 
-            "lang": "Ururimi", 
-            "pillar": "Inkingi y'Ingamba", 
-            "dash": "📊 Imbonerahamwe y'Utugari", 
-            "admin": "⚙️ Ubuyobozi",
-            "capacity": "Gahunda ya Ngororero",
-            "youth_proj": "Ihangahanga ry'Urubyiruko (Kigali)"
+            "title": "Umuryango JUC",
+            "home": "Murakaza neza kuri JUC M&E PORTAL",
+            "weekly": "Raporo y'Icyumweru",
+            "strat": "Raporo y'Inkingi z'Ingamba",
+            "dash": "Imbonerahamwe",
+            "admin": "Ubuyobozi",
+            "capacity": "Porogaramu ya Ngororero",
+            "youth_proj": "Urubyiruko rw'Udushya (Kigali)"
         },
         "Dutch": {
-            "title": "JUC Portaal", 
-            "weekly": "Wekelijks Rapport", 
-            "strat": "Strategisch Pijler Rapport", 
-            "dept": "Afdeling", 
-            "submit": "Indienen", 
-            "lang": "Taal", 
-            "pillar": "Strategische Pijler", 
-            "dash": "📊 Bellen Dashboard", 
-            "admin": "⚙️ Beheer",
+            "title": "JUC Portaal",
+            "home": "Welkom JUC M&E PORTAL",
+            "weekly": "Wekelijks Rapport",
+            "strat": "Strategisch Pijler Rapport",
+            "dash": "Dashboard",
+            "admin": "Beheer",
             "capacity": "Ngororero Programma",
             "youth_proj": "Jongeren Innovatie (Kigali)"
         },
         "Italian": {
-            "title": "Portale JUC", 
-            "weekly": "Rapporto Settimanale", 
-            "strat": "Rapporto Pilastro Strategico", 
-            "dept": "Dipartimento", 
-            "submit": "Invia", 
-            "lang": "Lingua", 
-            "pillar": "Pilastro Strategico", 
-            "dash": "📊 Dashboard a Bolle", 
-            "admin": "⚙️ Admin",
+            "title": "Portale JUC",
+            "home": "Benvenuto JUC M&E PORTAL",
+            "weekly": "Rapporto Settimanale",
+            "strat": "Rapporto Pilastro Strategico",
+            "dash": "Dashboard",
+            "admin": "Amministrazione",
             "capacity": "Programma Ngororero",
             "youth_proj": "Innovazione Giovanile (Kigali)"
         },
         "Spanish": {
-            "title": "Portal JUC", 
-            "weekly": "Informe Semanal", 
-            "strat": "Informe de Pilar Estratégico", 
-            "dept": "Departamento", 
-            "submit": "Enviar", 
-            "lang": "Idioma", 
-            "pillar": "Pilar Estratégico", 
-            "dash": "📊 Panel de Burbujas", 
-            "admin": "⚙️ Panel",
+            "title": "Portal JUC",
+            "home": "Bienvenido JUC M&E PORTAL",
+            "weekly": "Informe Semanal",
+            "strat": "Informe de Pilar Estratégico",
+            "dash": "Tablero",
+            "admin": "Admin",
             "capacity": "Programa Ngororero",
             "youth_proj": "Innovación Juvenil (Kigali)"
         }
     }
+
+# --- LANGUAGE SELECTOR IN SIDEBAR ---
+lang_choice = st.sidebar.selectbox("Language / Langue / Ururimi", ["English", "Français", "Kinyarwanda", "Dutch", "Italian", "Spanish"])
+t = get_translations()[lang_choice]
+
+# --- SIDEBAR NAVIGATION ---
+menu = st.sidebar.radio("Navigation", [t["home"], t["weekly"], t["strat"], t["dash"], t["admin"], t["capacity"], t["youth_proj"]])
+
+# --- PAGE ROUTING LOGIC ---
+
+if menu == t["home"]:
+    st.title("🏡 Welcome JUC M&E PORTAL")
+    st.write("This platform is designed to streamline weekly activity reporting, monitoring, and evaluation tracking for the Jesuit Urumuri Centre.")
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.info("**Active Modules**\n\nWeekly Reports & M&E")
+    with col2:
+        st.success("**System Status**\n\nOnline & Ready")
+    with col3:
+        st.warning("**Database**\n\nConnected")
+        
+    st.markdown("---")
+    st.subheader("Quick Guide")
+    st.write("Use the sidebar menu above to switch between different sections, submit your weekly updates, and review data dashboards.")
+
+elif menu == t["weekly"]:
+    st.title(f"📝 {t['weekly']}")
+    st.write("Weekly reporting form goes here...")
+    # Put your weekly report form code here
+
+elif menu == t["strat"]:
+    st.title(f"📊 {t['strat']}")
+    st.write("Strategic pillar reporting content goes here...")
+
+elif menu == t["dash"]:
+    st.title(f"📈 {t['dash']}")
+    st.write("Bubble dashboard visualization goes here...")
+
+elif menu == t["admin"]:
+    st.title(f"⚙️ {t['admin']}")
+    st.write("Admin settings and tools go here...")
+
+elif menu == t["capacity"]:
+    st.title(f"🌱 {t['capacity']}")
+    st.write("Ngororero program content goes here...")
+
+elif menu == t["youth_proj"]:
+    st.title(f"💡 {t['youth_proj']}")
+    st.write("Youth innovation project content goes here...")
 
 # --- INITIALIZATION ---
 if "lang" not in st.session_state: st.session_state.lang = "English"
@@ -305,8 +337,7 @@ st.markdown(f"""
 # ... (le reste de ton code)
 
 # --- NAVIGATION ---
-menu = st.sidebar.radio(t["title"], [t["weekly"], t["strat"], t["dash"], t["admin"], t["capacity"], t["youth_proj"]])
-
+menu = st.sidebar.radio("Navigation", [t["home"], t["weekly"], t["strat"], t["dash"], t["admin"], t["capacity"], t["youth_proj"]])
 # --- 1. WEEKLY REPORT ---
 if menu == t["weekly"]:
     st.header(t["weekly"])
