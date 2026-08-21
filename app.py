@@ -641,7 +641,7 @@ elif menu == t["admin"]:
     if engine:
         try:
             df = pd.read_sql("SELECT id, submission_date, staff_name, report_type, category, completed_activities, pending_issues, challenges FROM juc_reports ORDER BY submission_date DESC", engine)
-            # --- 4. ADMIN ---
+         # --- 4. ADMIN ---
 elif menu == t["admin"]:
     st.header(t["admin"])
     if engine:
@@ -684,29 +684,8 @@ elif menu == t["admin"]:
             with engine.connect() as conn:
                 conn.execute(text("DELETE FROM juc_reports"))
                 conn.commit()
-                
-                # 4. Option pour tout afficher
-                if st.button("Afficher tous les rapports"):
-                    st.dataframe(df, use_container_width=True)
-
-            st.subheader("Delete a specific record by ID")
-            report_id_to_delete = st.number_input("Enter ID to delete", min_value=0, step=1)
-
-            if st.button("Delete Selected Row"):
-                with engine.connect() as conn:
-                    conn.execute(text("DELETE FROM juc_reports WHERE id = :id"), {"id": report_id_to_delete})
-                    conn.commit()
-                    st.success(f"Record ID {report_id_to_delete} deleted successfully.")
-                    st.rerun()
-                    
-        except Exception as e:
-            st.info("Loading administration tools...")
-
-        st.markdown("---")
-        if st.button("🗑️ DELETE ALL (Total Reset)"):
-            with engine.connect() as conn:
-                conn.execute(text("DELETE FROM juc_reports"))
-                conn.commit()
+                st.success("All records deleted successfully.")
+                st.rerun()
 
             # ... (la suite de votre code pour supprimer reste inchangée)
                 
