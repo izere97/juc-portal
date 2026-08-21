@@ -630,18 +630,11 @@ elif menu == t["admin"]:
         try:
             df = pd.read_sql("SELECT id, submission_date, staff_name, report_type, category, completed_activities, pending_issues, challenges FROM juc_reports ORDER BY submission_date DESC", engine)
             # --- 4. ADMIN ---
-elif menu == t["admin"]:
-    st.header(t["admin"])
-    if engine:
-        try:
-            df = pd.read_sql("SELECT id, submission_date, staff_name, report_type, category, completed_activities, pending_issues, challenges FROM juc_reports ORDER BY submission_date DESC", engine)
-           # --- 4. ADMIN ---
-elif menu == t["admin"]:
-    st.header(t["admin"])
-    if engine:
-        try:
-            df = pd.read_sql("SELECT id, submission_date, staff_name, report_type, category, completed_activities, pending_issues, challenges FROM juc_reports ORDER BY submission_date DESC", engine)
-         # --- 4. ADMIN ---
+# (Fin de la section précédente...)
+        except Exception as e:
+            st.error(f"Une erreur est survenue : {e}")
+
+# --- 4. ADMIN ---
 elif menu == t["admin"]:
     st.header(t["admin"])
     if engine:
