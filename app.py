@@ -629,10 +629,37 @@ elif menu == t["admin"]:
     if engine:
         try:
             df = pd.read_sql("SELECT id, submission_date, staff_name, report_type, category, completed_activities, pending_issues, challenges FROM juc_reports ORDER BY submission_date DESC", engine)
+            # --- 4. ADMIN ---
+elif menu == t["admin"]:
+    st.header(t["admin"])
+    if engine:
+        try:
+            df = pd.read_sql("SELECT id, submission_date, staff_name, report_type, category, completed_activities, pending_issues, challenges FROM juc_reports ORDER BY submission_date DESC", engine)
             if df.empty:
                 st.info("The database is currently empty.")
             else:
-                st.dataframe(df, use_container_width=True)
+                # 1. Conversion de la date
+                df["submission_date"] = pd.to_datetime(df["submission_date"])
+                
+                # 2. Sélecteur de date unique pour filtrer le tableau
+                st.subheader("Filtrer les rapports par date")
+                date_selectionnee = st.date_input("Choisir une date pour filtrer les rapports")
+                
+                # 3. Filtrage du DataFrame basé sur la date choisie
+                # On compare la date de soumission avec la date sélectionnée
+                df_filtre = df[df["submission_date"].dt.date == date_selectionnee]
+                
+                if not df_filtre.empty:
+                    st.success(f"Affichage des rapports pour le : {date_selectionnee}")
+                    st.dataframe(df_filtre, use_container_width=True)
+                else:
+                    st.warning(f"Aucun rapport trouvé pour la date : {date_selectionnee}")
+                
+                # 4. Option pour tout afficher
+                if st.button("Afficher tous les rapports"):
+                    st.dataframe(df, use_container_width=True)
+
+            # ... (la suite de votre code pour supprimer reste inchangée)
                 
                 st.subheader("Delete a specific record by ID")
                 report_id_to_delete = st.number_input("Enter ID to delete", min_value=0, step=1)
