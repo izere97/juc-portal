@@ -248,7 +248,7 @@ bg_css = f"url('data:image/jpeg;base64,{st.session_state.bg_base64}')" if st.ses
 # Application du nouveau style
 st.markdown(f"""
     <style>
-    /* 1. Fond fixe (Image + Flou + Voile) */
+    /* 1. Image de fond fixe, floutée et assombrie */
     .stApp {{
         background: none !important;
     }}
@@ -270,40 +270,35 @@ st.markdown(f"""
         z-index: -1;
     }}
 
-    /* 2. Conteneur principal (La feuille de papier) */
+    /* 2. Conteneur principal (Le bloc blanc) */
     .main .block-container {{
         background-color: #ffffff !important; 
         padding: 2.5rem;
         border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }}
 
-    /* 3. FORCER les zones de saisie et labels en BLANC/NOIR pour une lisibilité totale */
-    /* Labels (Full Name, Date, etc.) */
-    label {{
+    /* 3. Textes à L'INTÉRIEUR du bloc blanc (Labels et inputs) */
+    .main .block-container label, 
+    .main .block-container input, 
+    .main .block-container textarea, 
+    .main .block-container div[data-baseweb="select"] {{
         color: #000000 !important;
-        font-weight: bold !important;
+        font-weight: 500 !important;
     }}
 
-    /* Input text boxes, text areas et selectbox */
-    div[data-baseweb="base-input"], div[data-baseweb="select"], textarea {{
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        border: 1px solid #000000 !important;
+    /* 4. Textes à L'EXTÉRIEUR du bloc blanc (Titres et descriptions) */
+    /* On les force en blanc pour qu'ils soient lisibles sur le fond sombre */
+    h1, h2, h3, .stMarkdown p {{
+        color: #ffffff !important;
     }}
     
-    /* Texte dans les zones de saisie */
-    input, textarea, div[data-baseweb="select"] > div {{
-        color: #000000 !important;
-        background-color: #ffffff !important;
-    }}
-
-    /* Titres */
-    h1, h2, h3 {{
-        color: #0369a1 !important;
+    /* Si besoin, on peut ajouter une légère ombre portée pour améliorer la lecture */
+    h1, h2, h3, .stMarkdown p {{
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
     }}
     </style>
 """, unsafe_allow_html=True)
-
 # ... (le reste de ton code)
 
 # --- NAVIGATION ---
