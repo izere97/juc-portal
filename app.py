@@ -248,12 +248,11 @@ bg_css = f"url('data:image/jpeg;base64,{st.session_state.bg_base64}')" if st.ses
 # Application du nouveau style
 st.markdown(f"""
     <style>
-    /* 1. On retire le filtre global et on utilise une pseudo-couche pour l'image */
+    /* 1. Image de fond fixe et floutée */
     .stApp {{
-        background: none !important; /* On annule le fond par défaut */
+        background: none !important;
     }}
 
-    /* On crée une couche fixe pour l'image de fond avec le flou */
     .stApp::before {{
         content: "";
         position: fixed;
@@ -261,33 +260,34 @@ st.markdown(f"""
         background-image: {bg_css} !important;
         background-size: cover !important;
         background-position: center !important;
-        filter: blur(8px); /* Flou uniquement sur l'image */
+        filter: blur(8px);
         z-index: -2;
     }}
 
-    /* On ajoute un voile sombre par-dessus l'image floutée */
     .stApp::after {{
         content: "";
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
-        background-color: rgba(0, 0, 0, 0.7); /* Voile sombre */
+        background-color: rgba(0, 0, 0, 0.6); /* Voile sombre */
         z-index: -1;
     }}
 
-    /* 2. Conteneur principal : Reste parfaitement net */
+    /* 2. Conteneur principal : OPAQUE (Blanc) pour une lisibilité parfaite */
     .main .block-container {{
-        background: rgba(255, 255, 255, 0.95); 
-        padding: 2rem;
+        background-color: #ffffff !important; 
+        padding: 2.5rem;
         border-radius: 15px;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }}
 
-    /* 3. Texte et titres : Bien nets */
-    h1, h2, h3, p, label {{
-        color: #0f172a !important;
+    /* 3. Texte et Labels : Forcés en noir pour un contraste maximal */
+    label, p, div[data-testid="stMarkdownContainer"] {{
+        color: #000000 !important;
+        font-weight: 500 !important;
     }}
     
-    h1, h2 {{
+    /* Titres en bleu foncé */
+    h1, h2, h3 {{
         color: #0369a1 !important;
     }}
     </style>
