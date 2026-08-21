@@ -687,7 +687,6 @@ elif menu == t["admin"]:
                         conn.commit()
                     st.success(f"Record ID {report_id_to_delete} deleted successfully.")
                     st.rerun()
-        except Exception as e:
             st.info("Loading administration tools...")
             
         st.markdown("---")
