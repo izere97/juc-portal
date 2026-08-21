@@ -260,20 +260,28 @@ st.markdown(f"""
         background-color: rgba(0, 0, 0, 0.7); z-index: -1;
     }}
 
-    /* 2. FORCER TOUT LE TEXTE EN BLANC PAR DÉFAUT (sur le fond sombre) */
+    /* 2. Texte global par défaut (fond sombre) */
     div, p, h1, h2, h3, h4, span, label, li {{
         color: #ffffff !important;
         text-shadow: 1px 1px 2px rgba(0,0,0,1);
     }}
 
-    /* 3. Barrière : RÉTABLIR LE NOIR UNIQUEMENT DANS LE BLOC CENTRAL */
-    .main .block-container div, 
-    .main .block-container p, 
-    .main .block-container span, 
-    .main .block-container label,
-    .main .block-container input {{
+    /* 3. --- ICI : TEXTE NOIR FONCÉ DANS LES ESPACES BLANCS --- */
+    /* Cible les inputs, textareas et les éléments de sélection */
+    .main .block-container input, 
+    .main .block-container textarea,
+    .main .block-container div[role="combobox"],
+    .main .block-container div[data-baseweb="select"] {{
+        color: #000000 !important; /* Noir foncé */
+        font-weight: 600 !important; /* Gras pour plus de visibilité */
+        background-color: #ffffff !important;
+    }}
+
+    /* Labels au-dessus des champs blancs */
+    .main .block-container label {{
         color: #000000 !important;
         text-shadow: none !important;
+        font-weight: bold !important;
     }}
 
     /* 4. SIDEBAR EN BLEU CLAIR */
