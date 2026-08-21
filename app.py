@@ -10,7 +10,7 @@ import streamlit as st
 # --- CONFIGURATION ---
 st.set_page_config(
     page_title="JUC M&E Portal - Jesuit Urumuri Centre",
-    page_icon="📊",
+    page_icon="background.jpg",
     layout="wide",
 )
 
