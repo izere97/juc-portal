@@ -6,7 +6,10 @@ import pandas as pd
 from docx import Document
 from sqlalchemy import create_engine, text
 import streamlit as st
-
+st.markdown(
+    '<meta name="google-site-verification" content="IGderbV-0e_PYIBMeJIrTt3uKUtH4Njbq0T7JmWt_OA" />',
+    unsafe_allow_html=True,
+)
 # --- CONFIGURATION ---
 st.set_page_config(
     page_title="JUC M&E Portal - Jesuit Urumuri Centre",
