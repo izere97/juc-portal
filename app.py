@@ -266,15 +266,24 @@ st.markdown(f"""
         text-shadow: 1px 1px 2px rgba(0,0,0,1);
     }}
 
-    /* 3. Texte noir foncé dans les espaces blancs */
+    /* 3. Texte noir foncé dans les espaces blancs - CIBLAGE AGRESSIF */
     .main .block-container input, 
     .main .block-container textarea,
     .main .block-container div[role="combobox"],
     .main .block-container div[data-baseweb="select"],
-    .main .block-container div[data-baseweb="base-input"] > div {{
+    .main .block-container div[data-baseweb="base-input"] > div,
+    .main .block-container div[data-baseweb="textarea"] > textarea {{
         color: #000000 !important; 
-        font-weight: 600 !important; 
+        font-weight: 700 !important; 
         background-color: #ffffff !important;
+        -webkit-text-fill-color: #000000 !important; /* Force le remplissage du texte */
+    }}
+    
+    /* Ciblage spécifique du placeholder */
+    .main .block-container input::placeholder, 
+    .main .block-container textarea::placeholder {{
+        color: #333333 !important;
+        opacity: 1 !important;
     }}
 
     /* Labels au-dessus des champs blancs */
