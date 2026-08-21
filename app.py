@@ -248,11 +248,10 @@ bg_css = f"url('data:image/jpeg;base64,{st.session_state.bg_base64}')" if st.ses
 # Application du nouveau style
 st.markdown(f"""
     <style>
-    /* 1. Image de fond fixe et floutée */
+    /* 1. Fond fixe (Image + Flou + Voile) */
     .stApp {{
         background: none !important;
     }}
-
     .stApp::before {{
         content: "";
         position: fixed;
@@ -263,30 +262,42 @@ st.markdown(f"""
         filter: blur(8px);
         z-index: -2;
     }}
-
     .stApp::after {{
         content: "";
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
-        background-color: rgba(0, 0, 0, 0.6); /* Voile sombre */
+        background-color: rgba(0, 0, 0, 0.7);
         z-index: -1;
     }}
 
-    /* 2. Conteneur principal : OPAQUE (Blanc) pour une lisibilité parfaite */
+    /* 2. Conteneur principal (La feuille de papier) */
     .main .block-container {{
         background-color: #ffffff !important; 
         padding: 2.5rem;
         border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }}
 
-    /* 3. Texte et Labels : Forcés en noir pour un contraste maximal */
-    label, p, div[data-testid="stMarkdownContainer"] {{
+    /* 3. FORCER les zones de saisie et labels en BLANC/NOIR pour une lisibilité totale */
+    /* Labels (Full Name, Date, etc.) */
+    label {{
         color: #000000 !important;
-        font-weight: 500 !important;
+        font-weight: bold !important;
+    }}
+
+    /* Input text boxes, text areas et selectbox */
+    div[data-baseweb="base-input"], div[data-baseweb="select"], textarea {{
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 1px solid #000000 !important;
     }}
     
-    /* Titres en bleu foncé */
+    /* Texte dans les zones de saisie */
+    input, textarea, div[data-baseweb="select"] > div {{
+        color: #000000 !important;
+        background-color: #ffffff !important;
+    }}
+
+    /* Titres */
     h1, h2, h3 {{
         color: #0369a1 !important;
     }}
