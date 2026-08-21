@@ -636,55 +636,72 @@ elif menu == t["admin"]:
 
 # --- 4. ADMIN ---
 elif menu == t["admin"]:
-    st.header(t["admin"])
+    st.header("Administration du Portail")
+    
     if engine:
         try:
-            df = pd.read_sql("SELECT id, submission_date, staff_name, report_type, category, completed_activities, pending_issues, challenges FROM juc_reports ORDER BY submission_date DESC", engine)
+            # 1. Lecture de toutes les données
+            df = pd.read_sql("SELECT * FROM juc_reports", engine)
             
             if df.empty:
-                st.warning("La base de données est actuellement vide. Aucun rapport n'a encore été soumis.")
+                st.info("La base de données est vide.")
             else:
                 df["submission_date"] = pd.to_datetime(df["submission_date"])
                 
-                st.subheader("Filtrer les rapports par date")
-                date_selectionnee = st.date_input("Choisir une date pour filtrer les rapports")
+                # --- A. GRAPHIQUE / RÉSUMÉ DU CONTENU ---
+                st.subheader("📊 Résumé analytique du contenu")
                 
+                # On résume par type de rapport ou par catégorie pour voir le contenu global
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown("**Volume par Type de Rapport**")
+                    if "report_type" in df.columns:
+                        type_counts = df['report_type'].value_counts()
+                        st.bar_chart(type_counts)
+                with col2:
+                    st.markdown("**Volume par Catégorie / Département**")
+                    if "category" in df.columns:
+                        cat_counts = df['category'].value_counts()
+                        st.bar_chart(cat_counts)
+
+                # --- B. FILTRAGE ET TRI PAR DATE DE SOUMISSION ---
+                st.subheader("📅 Filtrer les rapports par date de soumission")
+                
+                # Sélecteur de date
+                date_selectionnee = st.date_input("Choisir une date spécifique")
+                
+                # Filtrage
                 df_filtre = df[df["submission_date"].dt.date == date_selectionnee]
                 
                 if not df_filtre.empty:
-                    st.success(f"Affichage des rapports pour le : {date_selectionnee}")
+                    st.success(f"Affichage des rapports soumis le : {date_selectionnee}")
                     st.dataframe(df_filtre, use_container_width=True)
                 else:
-                    st.warning(f"Aucun rapport trouvé pour la date : {date_selectionnee}")
-                
-                if st.button("Afficher tous les rapports"):
-                    st.dataframe(df, use_container_width=True)
-                else:
-                    # Afficher par défaut le tableau complet si aucun filtre strict n'est masqué
-                    st.markdown("### Tous les rapports enregistrés")
+                    st.warning(f"Aucun rapport trouvé pour la date du {date_selectionnee}. Voici l'ensemble des rapports :")
                     st.dataframe(df, use_container_width=True)
 
-            st.subheader("Supprimer un rapport spécifique par ID")
-            report_id_to_delete = st.number_input("Entrer l'ID à supprimer", min_value=0, step=1)
+                # --- C. TÉLÉCHARGEMENT DES DONNÉES ---
+                st.subheader("📥 Téléchargement")
+                csv_data = df.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="Télécharger tous les rapports (CSV)",
+                    data=csv_data,
+                    file_name="juc_rapports_complet.csv",
+                    mime="text/csv"
+                )
 
-            if st.button("Supprimer la ligne sélectionnée"):
-                with engine.connect() as conn:
-                    conn.execute(text("DELETE FROM juc_reports WHERE id = :id"), {"id": report_id_to_delete})
-                    conn.commit()
-                    st.success(f"Rapport ID {report_id_to_delete} supprimé avec succès.")
-                    st.rerun()
+                # --- D. GESTION DE LA BASE DE DONNÉES ---
+                with st.expander("⚙️ Outils de maintenance (Suppression)"):
+                    report_id_to_delete = st.number_input("Entrer l'ID du rapport à supprimer", min_value=0, step=1)
+                    if st.button("Supprimer cette ligne"):
+                        with engine.connect() as conn:
+                            conn.execute(text("DELETE FROM juc_reports WHERE id = :id"), {"id": report_id_to_delete})
+                            conn.commit()
+                            st.success(f"Rapport ID {report_id_to_delete} supprimé.")
+                            st.rerun()
 
-            st.markdown("---")
-            if st.button("🗑️ TOUT SUPPRIMER (Réinitialisation totale)"):
-                with engine.connect() as conn:
-                    conn.execute(text("DELETE FROM juc_reports"))
-                    conn.commit()
-                    st.success("Tous les rapports ont été supprimés.")
-                    st.rerun()
-                    
         except Exception as e:
-            st.error(f"Erreur lors de la lecture de la base de données : {e}")
-
+            st.error(f"Erreur lors du chargement des données : {e}")
 # --- 5. CAPACITY BUILDING PROGRAM (NGORORERO DISTRICT) ---
 elif menu == t["capacity"]:
     st.title("Capacity Building and Social Empowerment Program")
