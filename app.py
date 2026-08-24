@@ -128,9 +128,20 @@ if "authenticated" not in st.session_state: st.session_state.authenticated = Fal
 trans = get_translations()
 import os
 
-# This checks Render's Environment Variable first, then Streamlit secrets
-DATABASE_URL = os.getenv("DATABASE_URL") or (st.secrets["DATABASE_URL"] if "DATABASE_URL" in st.secrets else None)
-engine = create_engine(DATABASE_URL)
+import os
+
+# Safely check environment variable first, then fallback to secrets without crashing
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    try:
+        DATABASE_URL = st.secrets["DATABASE_URL"]
+    except Exception:
+        DATABASE_URL = None
+
+if DATABASE_URL:
+    engine = create_engine(DATABASE_URL)
+else:
+    st.error("DATABASE_URL is missing! Please configure it in your Render Environment variables.")
 
 # --- INITIALIZE SESSION STATE: NGORORERO PROGRAM ---
 if "beneficiaries" not in st.session_state:
