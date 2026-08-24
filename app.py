@@ -128,11 +128,17 @@ if "authenticated" not in st.session_state: st.session_state.authenticated = Fal
 trans = get_translations()
 
 import os
-import streamlit as st
 from sqlalchemy import create_engine
+import streamlit as st
 
-# Safely check Render Environment variables first, then fallback to local secrets if available
+# Use Render's environment variable directly without triggering st.secrets error
 DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    st.error("DATABASE_URL is missing! Please configure it in your Render Environment variables.")
+    engine = None
+else:
+    engine = create_engine(DATABASE_URL)
 
 if not DATABASE_URL:
     try:
