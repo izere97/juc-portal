@@ -1,3 +1,12 @@
+import streamlit as st
+
+# Force mobile scaling and responsive viewport
+st.markdown(
+    """
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    """,
+    unsafe_allow_html=True
+)
 import base64
 from datetime import date, datetime
 import io
