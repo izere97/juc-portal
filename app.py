@@ -984,3 +984,23 @@ st.subheader("📂 Project Files Finder")
 import os
 current_files = os.listdir()
 st.write("Files in your project folder:", current_files)
+st.divider()
+st.subheader("✏️ Admin: Modify Records")
+
+import glob
+
+# Find any SQLite database files in the folder automatically
+db_files = glob.glob("*.db") + glob.glob("*.sqlite")
+st.write("Found database files:", db_files)
+
+for db in db_files:
+    if db == "your_database.db":
+        continue  # Skip the empty placeholder
+    try:
+        eng = create_engine(f"sqlite:///{db}")
+        with eng.connect() as conn:
+            tbls = conn.execute(text("SELECT name FROM sqlite_master WHERE type='table';")).fetchall()
+        if tbls:
+            st.success(f"Found active tables in '{db}': {[t[0] for t in tbls]}")
+    except Exception as ex:
+        pass
