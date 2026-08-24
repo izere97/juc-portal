@@ -130,18 +130,18 @@ import os
 
 import os
 
-# Safely check environment variable first, then fallback to secrets without crashing
-DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    try:
-        DATABASE_URL = st.secrets["DATABASE_URL"]
-    except Exception:
-        DATABASE_URL = None
+import os
+
+# Safely get DATABASE_URL from Render environment variables or fallback safely
+try:
+    DATABASE_URL = os.getenv("DATABASE_URL") or st.secrets.get("DATABASE_URL")
+except Exception:
+    DATABASE_URL = os.getenv("DATABASE_URL")
 
 if DATABASE_URL:
     engine = create_engine(DATABASE_URL)
 else:
-    st.error("DATABASE_URL is missing! Please configure it in your Render Environment variables.")
+    st.error("DATABASE_URL is missing. Please add it to your Render Environment variables.")
 
 # --- INITIALIZE SESSION STATE: NGORORERO PROGRAM ---
 if "beneficiaries" not in st.session_state:
