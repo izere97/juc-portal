@@ -7,8 +7,21 @@ from docx import Document
 from sqlalchemy import create_engine, text
 import streamlit as st
 st.markdown(
-    '<meta name="google-site-verification" content="IGderbV-0e_PYIBMeJIrTt3uKUtH4Njbq0T7JmWt_OA" />',
-    unsafe_allow_html=True,
+    """
+    <meta name="google-site-verification" content="IGderbV-0e_PYIBMeJiRT3uKUtH4Njbq0T7JmWt_OA" />
+    <style>
+    /* Force elements to fit mobile screens automatically */
+    img, table, div, span {
+        max-width: 100% !important;
+        box-sizing: border-box;
+    }
+    body {
+        overflow-x: hidden;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 )
 # --- CONFIGURATION ---
 st.set_page_config(
