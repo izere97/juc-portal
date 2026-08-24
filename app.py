@@ -979,15 +979,76 @@ elif menu == t["youth_proj"]:
         st.info("Use the sidebar sub-options to manage youth innovator cohorts, expenses, and action learning modules.")
 # --- ADMIN SECTION: MODIFY EXISTING ENTRIES ---
 st.divider()
-st.subheader("📂 Searching for CSV Data Files")
+st.subheader("✏️ Admin: Modify Records in Neon Database")
 
-import glob
-csv_files = glob.glob("*.csv")
-st.write("Found CSV files in folder:", csv_files)
+try:
+    # 1. Connect to Neon using your app's secret configuration (or replace with your connection string)
+    # Most Streamlit apps using Neon store this in st.secrets["DATABASE_URL"]
+    engine = create_engine(st.secrets["DATABASE_URL"]) 
+    
+    # 2. Discover available tables in your Neon database
+    with engine.connect() as conn:
+        tables_result = conn.execute(text("SELECT table_name FROM information_schema.tables WHERE table_schema='public';")).fetchall()
+    
+    table_names = [t[0] for t in tables_result]
+    
+    if not table_names:
+        st.info("No tables found in your Neon database yet.")
+    else:
+        # Let you choose which table to manage if you have multiple
+        target_table = st.selectbox("Select table to edit:", table_names, key="neon_table_select")
+        
+        # Load records from Neon into a DataFrame
+        df_admin = pd.read_sql(f"SELECT * FROM {target_table}", con=engine)
+        
+        if df_admin.empty:
+            st.info(f"The table '{target_table}' is currently empty.")
+        else:
+            # Dynamically handle column names
+            columns = df_admin.columns.tolist()
+            id_col = columns[0]   # Primary key / ID column
+            name_col = columns[1] if len(columns) > 1 else columns[0]
+            
+            # Create a clean label for the select dropdown
+            df_admin["Display_Label"] = df_admin[id_col].astype(str) + " - " + df_admin[name_col].astype(str)
+            
+            selected_label = st.selectbox(
+                "Select a record to modify:", 
+                df_admin["Display_Label"].tolist(),
+                key="neon_modify_selectbox"
+            )
+            
+            selected_id = selected_label.split(" - ")[0]
+            
+            # Get the exact row data
+            record_row = df_admin[df_admin[id_col].astype(str) == selected_id].iloc[0]
+            
+            # 3. Modification Form pre-filled with data from Neon
+            with st.form(key=f"neon_edit_form_{selected_id}"):
+                st.write(f"Modifying record ID: **{selected_id}**")
+                
+                updated_values = {}
+                for col in columns:
+                    if col != id_col:
+                        # Handle potential null/None values safely
+                        val = "" if pd.isna(record_row[col]) else str(record_row[col])
+                        updated_values[col] = st.text_input(col, value=val)
+                
+                save_updates = st.form_submit_button("Save Changes to Neon DB")
+                
+                if save_updates:
+                    # 4. Build and execute PostgreSQL UPDATE query
+                    set_clause = ", ".join([f'"{col}" = :{col}' for col in updated_values.keys()])
+                    update_query = text(f'UPDATE "{target_table}" SET {set_clause} WHERE "{id_col}" = :id_val')
+                    
+                    params = {**updated_values, "id_val": selected_id}
+                    
+                    with engine.begin() as conn:
+                        conn.execute(update_query, params)
+                    
+                    st.success("Record successfully updated in Neon database for all users!")
+                    st.rerun()
 
-if csv_files:
-    for csv_file in csv_files:
-        df_csv = pd.read_csv(csv_file)
-        st.write(f"Contents of '{csv_file}':", df_csv)
-else:
-    st.info("No CSV files found either. Let's look at how your app saves data in your code.")
+except Exception as e:
+    st.error(f"Error connecting to Neon database: {e}")
+    st.info("Check if your `DATABASE_URL` is correctly configured in your Streamlit secrets or connection variables.")
