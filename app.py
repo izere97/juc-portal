@@ -979,28 +979,22 @@ elif menu == t["youth_proj"]:
         st.info("Use the sidebar sub-options to manage youth innovator cohorts, expenses, and action learning modules.")
 # --- ADMIN SECTION: MODIFY EXISTING ENTRIES ---
 st.divider()
-st.subheader("📂 Project Files Finder")
+st.subheader("🔍 Checking 'your_database.db' Contents")
 
-import os
-current_files = os.listdir()
-st.write("Files in your project folder:", current_files)
-st.divider()
-st.subheader("✏️ Admin: Modify Records")
+try:
+    engine = create_engine("sqlite:///your_database.db")
+    with engine.connect() as conn:
+        tables = conn.execute(text("SELECT name FROM sqlite_master WHERE type='table';")).fetchall()
+    
+    table_list = [t[0] for t in tables]
+    st.write("Tables found inside 'your_database.db':", table_list)
+    
+    if table_list:
+        for tbl in table_list:
+            df_check = pd.read_sql(f"SELECT * FROM {tbl}", con=engine)
+            st.write(f"Data in table '{tbl}':", df_check)
+    else:
+        st.warning("The database file exists, but no tables have been created yet. Are you saving your data to a CSV file instead (like a `.csv`)?")
 
-import glob
-
-# Find any SQLite database files in the folder automatically
-db_files = glob.glob("*.db") + glob.glob("*.sqlite")
-st.write("Found database files:", db_files)
-
-for db in db_files:
-    if db == "your_database.db":
-        continue  # Skip the empty placeholder
-    try:
-        eng = create_engine(f"sqlite:///{db}")
-        with eng.connect() as conn:
-            tbls = conn.execute(text("SELECT name FROM sqlite_master WHERE type='table';")).fetchall()
-        if tbls:
-            st.success(f"Found active tables in '{db}': {[t[0] for t in tbls]}")
-    except Exception as ex:
-        pass
+except Exception as e:
+    st.error(f"Error reading database: {e}")
