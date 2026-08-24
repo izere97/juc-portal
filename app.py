@@ -979,58 +979,25 @@ elif menu == t["youth_proj"]:
         st.info("Use the sidebar sub-options to manage youth innovator cohorts, expenses, and action learning modules.")
 # --- ADMIN SECTION: MODIFY EXISTING ENTRIES ---
 st.divider()
-st.subheader("✏️ Admin: Modify Records Entered by Any User")
+st.subheader("🔍 Database Inspection Tool")
 
 try:
-    # Connect and load all existing records from your database
-    # (Ensure 'engine' matches your database engine variable name)
-    df_admin = pd.read_sql("SELECT * FROM submissions", con=engine) # Replace 'submissions' with your actual table name if different
+    # Let's see what tables exist in your database
+    engine = create_engine("sqlite:///your_database.db") # Use your actual connection string if different
     
-    if df_admin.empty:
-        st.info("No records found in the database yet.")
-    else:
-        # Create a label combining ID, Name, and Department to easily track records
-        df_admin["Display_Label"] = df_admin["id"].astype(str) + " - " + df_admin["name"] + " (" + df_admin["department"] + ")"
-        
-        selected_label = st.selectbox(
-            "Select a record to modify:", 
-            df_admin["Display_Label"].tolist(),
-            key="admin_modify_selectbox"
-        )
-        
-        # Extract the unique ID from the label string
-        selected_id = int(selected_label.split(" - ")[0])
-        
-        # Get the specific row data
-        record_row = df_admin[df_admin["id"] == selected_id].iloc[0]
-        
-        # Modification Form pre-filled with existing data
-        with st.form(key=f"admin_edit_form_{selected_id}"):
-            st.write(f"Modifying entry submitted by: **{record_row['name']}**")
-            
-            updated_name = st.text_input("Name", value=record_row["name"])
-            updated_dept = st.text_input("Department", value=record_row["department"])
-            updated_report = st.text_area("Activity Report", value=record_row["activity_report"]) # Match your database column name
-            
-            save_updates = st.form_submit_button("Save Changes to Database")
-            
-            if save_updates:
-                # Execute SQL UPDATE query so changes update globally for everyone
-                with engine.begin() as conn:
-                    update_query = text("""
-                        UPDATE submissions 
-                        SET name = :name, department = :department, activity_report = :report 
-                        WHERE id = :id
-                    """)
-                    conn.execute(update_query, {
-                        "name": updated_name, 
-                        "department": updated_dept, 
-                        "report": updated_report, 
-                        "id": selected_id
-                    })
-                
-                st.success("Record successfully updated for all users!")
-                st.rerun()
+    # Read table names
+    table_query = text("SELECT name FROM sqlite_master WHERE type='table';")
+    with engine.connect() as conn:
+        tables = conn.execute(table_query).fetchall()
+    
+    st.write("Available tables in your database:", [t[0] for t in tables])
+    
+    # If you know your table name (e.g., 'reports'), let's show its columns:
+    if tables:
+        first_table = tables[0][0]
+        sample_df = pd.read_sql(f"SELECT * FROM {first_table} LIMIT 1", con=engine)
+        st.write(f"Columns in table '{first_table}':", sample_df.columns.tolist())
+        st.dataframe(sample_df)
 
 except Exception as e:
-    st.info("Database table is initializing or empty. Once submissions are made, modification options will appear here.")
+    st.error(f"Error connecting to database: {e}")
