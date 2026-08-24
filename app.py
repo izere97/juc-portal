@@ -10,7 +10,6 @@ st.markdown(
     """
     <meta name="google-site-verification" content="IGderbV-0e_PYIBMeJiRT3uKUtH4Njbq0T7JmWt_OA" />
     <style>
-    /* Force elements to fit mobile screens automatically */
     img, table, div, span {
         max-width: 100% !important;
         box-sizing: border-box;
@@ -22,7 +21,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-)
+
 # --- CONFIGURATION ---
 st.set_page_config(
     page_title="JUC M&E Portal - Jesuit Urumuri Centre",
