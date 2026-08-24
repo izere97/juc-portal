@@ -369,7 +369,7 @@ if menu == t["weekly"]:
         dept = st.selectbox(t["dept"], ["Administration", "Finance", "Program management", "Project office", "Communication office", "Front Desk", "Monitoring and Evaluation"])
         
         completed_activities = st.text_area("Activities completed for the week ending on Friday")
-        pending_issues = st.text_area("Projection of pending issues to be completed or initiated next week")
+        pending_issues = st.text_area("Plan of next week activities")
         challenges = st.text_area("Challenges Encountered")
         
         doc = st.file_uploader("Upload supporting document", type=['pdf', 'jpg', 'png', 'docx'])
