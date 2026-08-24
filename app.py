@@ -979,25 +979,79 @@ elif menu == t["youth_proj"]:
         st.info("Use the sidebar sub-options to manage youth innovator cohorts, expenses, and action learning modules.")
 # --- ADMIN SECTION: MODIFY EXISTING ENTRIES ---
 st.divider()
-st.subheader("🔍 Database Inspection Tool")
+st.subheader("✏️ Admin: Modify Records Entered by Any User")
 
 try:
-    # Let's see what tables exist in your database
-    engine = create_engine("sqlite:///your_database.db") # Use your actual connection string if different
+    # ⚠️ CRITICAL: Replace this connection string with the exact one your app uses to save data
+    # (e.g., "sqlite:///juc_reports.db" or whatever filename your app uses)
+    engine = create_engine("sqlite:///your_database.db") 
     
-    # Read table names
-    table_query = text("SELECT name FROM sqlite_master WHERE type='table';")
+    # Let's inspect the actual tables present using this engine
     with engine.connect() as conn:
-        tables = conn.execute(table_query).fetchall()
+        tables_result = conn.execute(text("SELECT name FROM sqlite_master WHERE type='table';")).fetchall()
     
-    st.write("Available tables in your database:", [t[0] for t in tables])
+    table_names = [t[0] for t in tables_result]
     
-    # If you know your table name (e.g., 'reports'), let's show its columns:
-    if tables:
-        first_table = tables[0][0]
-        sample_df = pd.read_sql(f"SELECT * FROM {first_table} LIMIT 1", con=engine)
-        st.write(f"Columns in table '{first_table}':", sample_df.columns.tolist())
-        st.dataframe(sample_df)
+    if not table_names:
+        st.info("No database tables found. Please check your database file path.")
+    else:
+        # Automatically pick the first table (or specify your exact table name like 'submissions')
+        target_table = table_names[0] 
+        
+        # Load the data
+        df_admin = pd.read_sql(f"SELECT * FROM {target_table}", con=engine)
+        
+        if df_admin.empty:
+            st.info(f"The table '{target_table}' is currently empty.")
+        else:
+            st.success(f"Connected to table: **{target_table}**")
+            
+            # Display columns so you know what names to map
+            # (Usually columns are id, name, department, report, etc.)
+            columns = df_admin.columns.tolist()
+            
+            # Create a display label using the available columns
+            # Adjust 'id', 'name', 'department' below if your columns have slightly different names
+            id_col = columns[0]   # Usually ID
+            name_col = columns[1] if len(columns) > 1 else columns[0]
+            dept_col = columns[2] if len(columns) > 2 else columns[0]
+            
+            df_admin["Display_Label"] = df_admin[id_col].astype(str) + " - " + df_admin[name_col].astype(str) + " (" + df_admin[dept_col].astype(str) + ")"
+            
+            selected_label = st.selectbox(
+                "Select a record to modify:", 
+                df_admin["Display_Label"].tolist(),
+                key="admin_modify_selectbox"
+            )
+            
+            selected_id = selected_label.split(" - ")[0]
+            
+            # Fetch the specific row
+            record_row = df_admin[df_admin[id_col].astype(str) == selected_id].iloc[0]
+            
+            with st.form(key=f"admin_edit_form_{selected_id}"):
+                st.write(f"Modifying entry ID: **{selected_id}**")
+                
+                # Dynamic inputs based on your table columns
+                updated_values = {}
+                for col in columns:
+                    if col != id_col:
+                        updated_values[col] = st.text_input(col, value=str(record_row[col]))
+                
+                save_updates = st.form_submit_button("Save Changes to Database")
+                
+                if save_updates:
+                    # Build dynamic UPDATE query based on columns
+                    set_clause = ", ".join([f"{col} = :{col}" for col in updated_values.keys()])
+                    update_query = text(f"UPDATE {target_table} SET {set_clause} WHERE {id_col} = :id_val")
+                    
+                    params = {**updated_values, "id_val": selected_id}
+                    
+                    with engine.begin() as conn:
+                        conn.execute(update_query, params)
+                    
+                    st.success("Record successfully updated for all users!")
+                    st.rerun()
 
 except Exception as e:
-    st.error(f"Error connecting to database: {e}")
+    st.error(f"Error loading database: {e}")
