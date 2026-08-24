@@ -126,7 +126,11 @@ if "lang" not in st.session_state: st.session_state.lang = "English"
 if "authenticated" not in st.session_state: st.session_state.authenticated = False
 
 trans = get_translations()
-engine = create_engine(st.secrets["DATABASE_URL"]) if "DATABASE_URL" in st.secrets else None
+import os
+
+# This checks Render's Environment Variable first, then Streamlit secrets
+DATABASE_URL = os.getenv("DATABASE_URL") or (st.secrets["DATABASE_URL"] if "DATABASE_URL" in st.secrets else None)
+engine = create_engine(DATABASE_URL)
 
 # --- INITIALIZE SESSION STATE: NGORORERO PROGRAM ---
 if "beneficiaries" not in st.session_state:
