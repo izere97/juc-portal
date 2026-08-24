@@ -4,3 +4,7 @@ sqlalchemy
 psycopg2-binary
 python-docx
 xlsxwriter
+fastapi
+uvicorn
+psycopg2-binary
+jinja2
