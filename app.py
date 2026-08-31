@@ -1101,11 +1101,15 @@ import streamlit as st
 import pandas as pd
 from sqlalchemy import text
 
+import streamlit as st
+import pandas as pd
+from sqlalchemy import text
+
 # Connect to Neon Postgres via Streamlit st.connection
 conn = st.connection("neon", type="sql")
 
 st.title("JUC M&E Portal: Youth Innovation & Social Entrepreneurship")
-st.markdown("**Monitoring & Evaluation Dashboard for the 63-Month CEI-Funded Project**[cite: 1]")
+st.markdown("**Live Monitoring & Evaluation Dashboard for the 63-Month CEI-Funded Project**[cite: 1]")
 
 # Sidebar navigation
 menu = st.sidebar.selectbox("Navigation", ["Project Overview", "Planned Cohorts & Timeline", "Budget Tracking", "Database Manager (Neon)"])
@@ -1114,16 +1118,28 @@ if menu == "Project Overview":
     st.subheader("Core Project Metadata")
     st.info("Project Title: Youth Innovation and Social Entrepreneurship[cite: 1]")
     
+    # Try fetching live metrics from Neon, fallback to defaults if table is empty
+    try:
+        df_meta = conn.query("SELECT * FROM juc_projects ORDER BY id DESC LIMIT 1;", ttl="0s")
+        if not df_meta.empty:
+            total_beneficiaries = f"{df_meta.iloc[0]['total_beneficiaries']} Youth"
+            lifespan = f"{df_meta.iloc[0]['lifespan_months']} Months"
+            total_budget = f"{df_meta.iloc[0]['total_cost_frw']:,.2f} FRW"
+        else:
+            total_beneficiaries, lifespan, total_budget = "210 Youth", "63 Months", "160,950,000.00 FRW"
+    except Exception:
+        total_beneficiaries, lifespan, total_budget = "210 Youth", "63 Months", "160,950,000.00 FRW"
+
     col1, col2, col3 = st.columns(3)
-    col1.metric("Total Lifespan", "63 Months", "5 Years 3 Months")
-    col2.metric("Target Beneficiaries", "210 Youth", "7 Cohorts (30 per cohort)")
-    col3.metric("Total Budget", "160,950,000 FRW", "€95,803")
+    col1.metric("Total Lifespan", lifespan, "5 Years 3 Months")
+    col2.metric("Target Beneficiaries", total_beneficiaries, "7 Cohorts (30 per cohort)[cite: 1]")
+    col3.metric("Total Budget", total_budget, "€95,803")
 
     st.markdown("""
     **Core Phases per Cohort:**
-    1. **Recruitment (Months 1–3):** Candidate identification via local administrative databases and business idea competitions[cite: 1].
-    2. **Action Learning Training (Months 1–3):** 5 modules covering Self-Discovery, Prototyping, Marketing, Financial Management, and Strategic Planning[cite: 1].
-    3. **Incubation & Support (Months 4–9):** Co-working spaces, coaching, networking, and monthly monitoring[cite: 1].
+    * **Recruitment (Months 1–3):** Candidate identification via local administrative databases and business idea competitions[cite: 1].
+    * **Action Learning Training (Months 1–3):** 5 modules covering Self-Discovery, Prototyping, Marketing, Financial Management, and Strategic Planning[cite: 1].
+    * **Incubation & Support (Months 4–9):** Co-working spaces, coaching, networking, and monthly monitoring[cite: 1].
     """)
 
 elif menu == "Planned Cohorts & Timeline":
@@ -1154,7 +1170,7 @@ elif menu == "Budget Tracking":
 
 elif menu == "Database Manager (Neon)":
     st.subheader("Neon Postgres Database Integration")
-    st.write("Manage baseline project data stored in your Neon database.")
+    st.write("Manage and write active project entries directly to your Neon database instance.")
     
     if st.button("Seed JUC Project into Neon Database"):
         try:
@@ -1166,7 +1182,7 @@ elif menu == "Database Manager (Neon)":
                     """),
                     {
                         "title": "Youth Innovation and Social Entrepreneurship",
-                        "agency": "Jesuit Urumuri Centre (JUC)",
+                        "agency": "Jesuit Urumuri Centre (JUC)[cite: 1]",
                         "beneficiaries": 210,
                         "lifespan": 63,
                         "start_year": 2027,
@@ -1176,13 +1192,16 @@ elif menu == "Database Manager (Neon)":
                 )
                 session.commit()
             st.success("Successfully seeded project baseline data into Neon Postgres!")
+            st.rerun()
         except Exception as e:
-            st.error(f"Database insertion error: {e}")
+            st.error(f"Database insertion error (Ensure SQL tables are created first): {e}")
 
-    # Display live data from Neon
-    st.markdown("### Existing Projects in Neon Database")
+    st.markdown("### Live Records in Neon Database")
     try:
-        df_projects = conn.query("SELECT * FROM juc_projects;", ttl="10s")
-        st.dataframe(df_projects, use_container_width=True)
+        df_projects = conn.query("SELECT * FROM juc_projects;", ttl="0s")
+        if not df_projects.empty:
+            st.dataframe(df_projects, use_container_width=True)
+        else:
+            st.warning("The `juc_projects` table is currently empty. Click the button above to seed data.")
     except Exception as e:
-        st.info("No records fetched or table pending initialization.")
+        st.error(f"Could not load table. Please make sure you ran the SQL schema in Neon. Details: {e}")
