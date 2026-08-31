@@ -1097,3 +1097,92 @@ try:
 except Exception as e:
     st.error(f"Error connecting to Neon database: {e}")
     st.info("Check if your `DATABASE_URL` is correctly configured in your Streamlit secrets or connection variables.")
+import streamlit as st
+import pandas as pd
+from sqlalchemy import text
+
+# Connect to Neon Postgres via Streamlit st.connection
+conn = st.connection("neon", type="sql")
+
+st.title("JUC M&E Portal: Youth Innovation & Social Entrepreneurship")
+st.markdown("**Monitoring & Evaluation Dashboard for the 63-Month CEI-Funded Project**[cite: 1]")
+
+# Sidebar navigation
+menu = st.sidebar.selectbox("Navigation", ["Project Overview", "Planned Cohorts & Timeline", "Budget Tracking", "Database Manager (Neon)"])
+
+if menu == "Project Overview":
+    st.subheader("Core Project Metadata")
+    st.info("Project Title: Youth Innovation and Social Entrepreneurship[cite: 1]")
+    
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Total Lifespan", "63 Months", "5 Years 3 Months")
+    col2.metric("Target Beneficiaries", "210 Youth", "7 Cohorts (30 per cohort)")
+    col3.metric("Total Budget", "160,950,000 FRW", "€95,803")
+
+    st.markdown("""
+    **Core Phases per Cohort:**
+    1. **Recruitment (Months 1–3):** Candidate identification via local administrative databases and business idea competitions[cite: 1].
+    2. **Action Learning Training (Months 1–3):** 5 modules covering Self-Discovery, Prototyping, Marketing, Financial Management, and Strategic Planning[cite: 1].
+    3. **Incubation & Support (Months 4–9):** Co-working spaces, coaching, networking, and monthly monitoring[cite: 1].
+    """)
+
+elif menu == "Planned Cohorts & Timeline":
+    st.subheader("7-Cohort Implementation Timeline (2027–2032)")
+    
+    timeline_data = [
+        {"Cohort": 1, "Start Year": 2027, "Active Span": "Months 1 - 9", "Status": "Planned"},
+        {"Cohort": 2, "Start Year": 2028, "Active Span": "Months 10 - 18", "Status": "Planned"},
+        {"Cohort": 3, "Start Year": 2029, "Active Span": "Months 19 - 27", "Status": "Planned"},
+        {"Cohort": 4, "Start Year": 2030, "Active Span": "Months 28 - 36", "Status": "Planned"},
+        {"Cohort": 5, "Start Year": 2031, "Active Span": "Months 37 - 45", "Status": "Planned"},
+        {"Cohort": 6, "Start Year": 2032, "Active Span": "Months 46 - 54", "Status": "Planned"},
+        {"Cohort": 7, "Start Year": 2032, "Active Span": "Months 55 - 63", "Status": "Planned"},
+    ]
+    st.table(pd.DataFrame(timeline_data))
+
+elif menu == "Budget Tracking":
+    st.subheader("Project Financial Allocation Breakdown")
+    
+    budget_data = [
+        {"Category": "1. Recruitment & Selection", "CEI (FRW)": 490000, "Local (FRW)": 0, "Total (FRW)": 490000},
+        {"Category": "2. Trainings & Innovation", "CEI (FRW)": 114800000, "Local (FRW)": 1000000, "Total (FRW)": 115800000},
+        {"Category": "3. Incubation & Support", "CEI (FRW)": 37800000, "Local (FRW)": 6860000, "Total (FRW)": 44660000},
+        {"Category": "General Total", "CEI (FRW)": 152600000, "Local (FRW)": 8350000, "Total (FRW)": 160950000}
+    ]
+    df_budget = pd.DataFrame(budget_data)
+    st.dataframe(df_budget, use_container_width=True)
+
+elif menu == "Database Manager (Neon)":
+    st.subheader("Neon Postgres Database Integration")
+    st.write("Manage baseline project data stored in your Neon database.")
+    
+    if st.button("Seed JUC Project into Neon Database"):
+        try:
+            with conn.session as session:
+                session.execute(
+                    text("""
+                        INSERT INTO juc_projects (project_title, implementing_agency, total_beneficiaries, lifespan_months, start_year, total_cost_frw, total_cost_eur)
+                        VALUES (:title, :agency, :beneficiaries, :lifespan, :start_year, :cost_frw, :cost_eur)
+                    """),
+                    {
+                        "title": "Youth Innovation and Social Entrepreneurship",
+                        "agency": "Jesuit Urumuri Centre (JUC)",
+                        "beneficiaries": 210,
+                        "lifespan": 63,
+                        "start_year": 2027,
+                        "cost_frw": 160950000.00,
+                        "cost_eur": 95803.00
+                    }
+                )
+                session.commit()
+            st.success("Successfully seeded project baseline data into Neon Postgres!")
+        except Exception as e:
+            st.error(f"Database insertion error: {e}")
+
+    # Display live data from Neon
+    st.markdown("### Existing Projects in Neon Database")
+    try:
+        df_projects = conn.query("SELECT * FROM juc_projects;", ttl="10s")
+        st.dataframe(df_projects, use_container_width=True)
+    except Exception as e:
+        st.info("No records fetched or table pending initialization.")
