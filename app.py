@@ -1,3 +1,12 @@
+import streamlit as st
+
+# Force mobile scaling and responsive viewport
+st.markdown(
+    """
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    """,
+    unsafe_allow_html=True
+)
 import base64
 from datetime import date, datetime
 import io
@@ -6,11 +15,26 @@ import pandas as pd
 from docx import Document
 from sqlalchemy import create_engine, text
 import streamlit as st
+st.markdown(
+    """
+    <meta name="google-site-verification" content="IGderbV-0e_PYIBMeJiRT3uKUtH4Njbq0T7JmWt_OA" />
+    <style>
+    img, table, div, span {
+        max-width: 100% !important;
+        box-sizing: border-box;
+    }
+    body {
+        overflow-x: hidden;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # --- CONFIGURATION ---
 st.set_page_config(
-    page_title="JUC Portal - Multi-Project Management",
-    page_icon="📊",
+    page_title="JUC M&E Portal - Jesuit Urumuri Centre",
+    page_icon="background.jpg",
     layout="wide",
 )
 
@@ -28,7 +52,7 @@ def get_translations():
             "dash": "📊 Bubble Dashboard", 
             "admin": "⚙️ Admin",
             "capacity": "Ngororero Program",
-            "youth_proj": "Youth Innovation (Kigali - CEI)"
+            "youth_proj": "Youth Innovation (Kigali)"
         },
         "Français": {
             "title": "Portail JUC", 
@@ -41,7 +65,7 @@ def get_translations():
             "dash": "📊 Tableau de Bord en Bulles", 
             "admin": "⚙️ Admin",
             "capacity": "Programme Ngororero",
-            "youth_proj": "Innovation Jeunesse (Kigali - CEI)"
+            "youth_proj": "Innovation Jeunesse (Kigali)"
         },
         "Kinyarwanda": {
             "title": "Urubuga JUC", 
@@ -54,7 +78,7 @@ def get_translations():
             "dash": "📊 Imbonerahamwe y'Utugari", 
             "admin": "⚙️ Ubuyobozi",
             "capacity": "Gahunda ya Ngororero",
-            "youth_proj": "Ihangahanga ry'Urubyiruko (Kigali - CEI)"
+            "youth_proj": "Ihangahanga ry'Urubyiruko (Kigali)"
         },
         "Dutch": {
             "title": "JUC Portaal", 
@@ -67,7 +91,7 @@ def get_translations():
             "dash": "📊 Bellen Dashboard", 
             "admin": "⚙️ Beheer",
             "capacity": "Ngororero Programma",
-            "youth_proj": "Jongeren Innovatie (Kigali - CEI)"
+            "youth_proj": "Jongeren Innovatie (Kigali)"
         },
         "Italian": {
             "title": "Portale JUC", 
@@ -80,7 +104,7 @@ def get_translations():
             "dash": "📊 Dashboard a Bolle", 
             "admin": "⚙️ Admin",
             "capacity": "Programma Ngororero",
-            "youth_proj": "Innovazione Giovanile (Kigali - CEI)"
+            "youth_proj": "Innovazione Giovanile (Kigali)"
         },
         "Spanish": {
             "title": "Portal JUC", 
@@ -93,7 +117,7 @@ def get_translations():
             "dash": "📊 Panel de Burbujas", 
             "admin": "⚙️ Panel",
             "capacity": "Programa Ngororero",
-            "youth_proj": "Innovación Juvenil (Kigali - CEI)"
+            "youth_proj": "Innovación Juvenil (Kigali)"
         }
     }
 
@@ -103,9 +127,30 @@ if "authenticated" not in st.session_state: st.session_state.authenticated = Fal
 
 trans = get_translations()
 
-# --- NEON DATABASE ENGINE INITIALIZATION ---
-neon_url = st.secrets.get("NEON_URL", st.secrets.get("DATABASE_URL", None))
-engine = create_engine(neon_url) if neon_url else None
+import os
+from sqlalchemy import create_engine
+import streamlit as st
+
+# Use Render's environment variable directly without triggering st.secrets error
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    st.error("DATABASE_URL is missing! Please configure it in your Render Environment variables.")
+    engine = None
+else:
+    engine = create_engine(DATABASE_URL)
+
+if not DATABASE_URL:
+    try:
+        DATABASE_URL = st.secrets["DATABASE_URL"]
+    except Exception:
+        DATABASE_URL = None
+
+# Initialize the database engine safely
+if DATABASE_URL:
+    engine = create_engine(DATABASE_URL)
+else:
+    st.error("DATABASE_URL is missing! Please configure it in your Render Environment variables.")
 
 # --- INITIALIZE SESSION STATE: NGORORERO PROGRAM ---
 if "beneficiaries" not in st.session_state:
@@ -144,7 +189,7 @@ if "activities" not in st.session_state:
         }
     )
 
-# --- INITIALIZE SESSION STATE: YOUTH INNOVATION & SOCIAL ENTREPRENEURSHIP (KIGALI - CEI) ---
+# --- INITIALIZE SESSION STATE: YOUTH INNOVATION & SOCIAL ENTREPRENEURSHIP (KIGALI) ---
 if "youth_beneficiaries" not in st.session_state:
     st.session_state.youth_beneficiaries = pd.DataFrame(
         columns=["Full Name", "Cohort", "Business Idea Title", "District / Suburb", "Phone Number", "Status"]
@@ -154,11 +199,11 @@ if "youth_budget" not in st.session_state:
     st.session_state.youth_budget = pd.DataFrame(
         {
             "Budget Line": [
-                "1. Recruitment & Selection (Communication, Transport & Competitions)",
-                "2. Trainings (Program Manager, Asst, Coaches/Mentors, Seed Funding, Equipment, Graduation)",
-                "3. Incubation & Support (Facilitation Fees, Management/Coaching, Wi-Fi, Guest Speakers)"
+                "1. Recruitment & Selection (Admin/Transport & Competitions)",
+                "2. Trainings (Program Mgr, Asst, Mentors, Seed Funding, Equipment, Graduation)",
+                "3. Incubation & Support (Facilitation Fees, Mentorship, Wi-Fi, Guest Speakers)"
             ],
-            "Allocated Budget (RWF)": [490000, 115800000, 44660000],
+            "Allocated Budget (RWF)": [6100000, 92000000, 47600000],
             "Actual Spent (RWF)": [0, 0, 0]
         }
     )
@@ -173,10 +218,10 @@ if "youth_activities" not in st.session_state:
                 "Training: Marketing and Promotion",
                 "Training: Operations, Financing & Financial Management",
                 "Training: Strategic Planning and Sustainability",
-                "Incubation: Enrolling into incubator & monthly coaching (6 Months)",
-                "M&E: Quarterly project evaluations & Monthly study visits"
+                "Incubation: Enrolling into incubator & monthly coaching",
+                "M&E: Quarterly project evaluations"
             ],
-            "Timeline": ["Months 1-3 per cohort", "Phase 1", "Phase 2", "Phase 3", "Phase 4", "Phase 5", "6 Months Incubation", "Continuous (63 Mos)"],
+            "Timeline": ["Months 1-3 per cohort", "Phase 1", "Phase 2", "Phase 3", "Phase 4", "Phase 5", "6 Months Incubation", "Continuous (36 Mos)"],
             "Status": ["Not Started", "Not Started", "Not Started", "Not Started", "Not Started", "Not Started", "Not Started", "Not Started"],
             "Remarks": ["", "", "", "", "", "", "", ""]
         }
@@ -246,56 +291,69 @@ if st.sidebar.button("Sign Out"):
 
 bg_css = f"url('data:image/jpeg;base64,{st.session_state.bg_base64}')" if st.session_state.bg_base64 else "none"
 
+# ... (ton code précédent)
+
+# Application du nouveau style
 st.markdown(f"""
     <style>
-    .stApp {{
-        background-image: {bg_css} !important;
-        background-size: cover !important;
-        background-position: center center !important;
-        background-repeat: no-repeat !important;
-        background-attachment: fixed !important;
+    /* 1. Fond fixe (Image floue et assombrie) */
+    .stApp {{ background: none !important; }}
+    .stApp::before {{
+        content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-image: {bg_css} !important; background-size: cover !important;
+        background-position: center !important; filter: blur(8px); z-index: -2;
     }}
-    .main .block-container {{
-        background: rgba(255, 255, 255, 0.93);
-        padding: 2.5rem;
-        border-radius: 15px;
-        backdrop-filter: blur(8px);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    .stApp::after {{
+        content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.7); z-index: -1;
     }}
-    div[data-testid="stForm"] {{
-        background: rgba(255, 255, 258, 0.98) !important;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        border: 1px solid rgba(226, 232, 240, 1);
+
+    /* 2. Texte global par défaut (pour le fond sombre) */
+    div, p, h1, h2, h3, h4, span, label, li {{
+        color: #ffffff !important;
+        text-shadow: 1px 1px 2px rgba(0,0,0,1);
     }}
-    .bubble-card {{
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        border: 2px solid #cbd5e1;
-        border-radius: 20px;
-        padding: 20px;
-        text-align: center;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        margin-bottom: 20px;
+
+    /* 3. Texte noir foncé dans les espaces blancs - CIBLAGE AGRESSIF */
+    .main .block-container input, 
+    .main .block-container textarea,
+    .main .block-container div[role="combobox"],
+    .main .block-container div[data-baseweb="select"],
+    .main .block-container div[data-baseweb="base-input"] > div,
+    .main .block-container div[data-baseweb="textarea"] > textarea {{
+        color: #000000 !important; 
+        font-weight: 700 !important; 
+        background-color: #ffffff !important;
+        -webkit-text-fill-color: #000000 !important; /* Force le remplissage du texte */
     }}
-    .bubble-admin {{
-        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-        border: 2px solid #3b82f6;
-        border-radius: 25px;
-        padding: 25px;
-        text-align: center;
-        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.15);
-        margin-bottom: 25px;
+    
+    /* Ciblage spécifique du placeholder */
+    .main .block-container input::placeholder, 
+    .main .block-container textarea::placeholder {{
+        color: #333333 !important;
+        opacity: 1 !important;
     }}
-    h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown {{
-        color: #0f172a !important;
+
+    /* Labels au-dessus des champs blancs */
+    .main .block-container label {{
+        color: #000000 !important;
+        text-shadow: none !important;
+        font-weight: bold !important;
+    }}
+
+    /* 4. Sidebar en bleu clair */
+    [data-testid="stSidebar"] {{ background-color: #f0f9ff !important; }}
+    [data-testid="stSidebar"] div, [data-testid="stSidebar"] p, [data-testid="stSidebar"] span {{
+        color: #0369a1 !important;
+        text-shadow: none !important;
+        font-weight: 600 !important;
     }}
     </style>
 """, unsafe_allow_html=True)
+# ... (le reste de ton code)
 
 # --- NAVIGATION ---
-menu = st.sidebar.radio(t["title"], [t["weekly"], t["strat"], t["dash"], t["admin"], t["capacity"], t["youth_proj"]])
-
+menu = st.sidebar.radio("Navigation", [t["weekly"], t["strat"], t["dash"], t["admin"], t["capacity"], t["youth_proj"]])
 # --- 1. WEEKLY REPORT ---
 if menu == t["weekly"]:
     st.header(t["weekly"])
@@ -311,7 +369,7 @@ if menu == t["weekly"]:
         dept = st.selectbox(t["dept"], ["Administration", "Finance", "Program management", "Project office", "Communication office", "Front Desk", "Monitoring and Evaluation"])
         
         completed_activities = st.text_area("Activities completed for the week ending on Friday")
-        pending_issues = st.text_area("Projection of pending issues to be completed or initiated next week")
+        pending_issues = st.text_area("Plan of next week activities")
         challenges = st.text_area("Challenges Encountered")
         
         doc = st.file_uploader("Upload supporting document", type=['pdf', 'jpg', 'png', 'docx'])
@@ -341,8 +399,6 @@ if menu == t["weekly"]:
                     })
                     conn.commit()
                 st.success("Weekly report submitted successfully!")
-            else:
-                st.error("Database engine is not configured. Check your Neon secrets.")
 
 # --- 2. STRATEGIC PILLAR REPORT ---
 elif menu == t["strat"]:
@@ -384,8 +440,6 @@ elif menu == t["strat"]:
                         })
                         conn.commit()
                     st.success("Submitted successfully!")
-                else:
-                    st.error("Database engine is not configured.")
     elif chosen_pillar.startswith("Pillar 2"):
         with st.form("form_pillar_2"):
             staff_name = st.text_input("Full Name", key="p2_name")
@@ -410,8 +464,6 @@ elif menu == t["strat"]:
                         })
                         conn.commit()
                     st.success("Submitted successfully!")
-                else:
-                    st.error("Database engine is not configured.")
     elif chosen_pillar.startswith("Pillar 3"):
         with st.form("form_pillar_3"):
             staff_name = st.text_input("Full Name", key="p3_name")
@@ -436,8 +488,6 @@ elif menu == t["strat"]:
                         })
                         conn.commit()
                     st.success("Submitted successfully!")
-                else:
-                    st.error("Database engine is not configured.")
     elif chosen_pillar.startswith("Pillar 4"):
         with st.form("form_pillar_4"):
             staff_name = st.text_input("Full Name", key="p4_name")
@@ -462,8 +512,6 @@ elif menu == t["strat"]:
                         })
                         conn.commit()
                     st.success("Submitted successfully!")
-                else:
-                    st.error("Database engine is not configured.")
 
 # --- 3. BUBBLE DASHBOARD & EXPORTS (EXCEL & WORD) ---
 elif menu == t["dash"]:
@@ -619,42 +667,87 @@ elif menu == t["dash"]:
                 
         except Exception as e:
             st.error(f"Error loading dashboard: {e}")
-    else:
-        st.warning("Database engine is not active. Please provide your Neon connection string in secrets.")
 
 # --- 4. ADMIN ---
 elif menu == t["admin"]:
-    st.header(t["admin"])
-    if engine:
-        try:
-            df = pd.read_sql("SELECT id, submission_date, staff_name, report_type, category, completed_activities, pending_issues, challenges FROM juc_reports ORDER BY submission_date DESC", engine)
-            if df.empty:
-                st.info("The database is currently empty.")
-            else:
-                st.dataframe(df, use_container_width=True)
-                
-                st.subheader("Delete a specific record by ID")
-                report_id_to_delete = st.number_input("Enter ID to delete", min_value=0, step=1)
-                
-                if st.button("Delete Selected Row"):
-                    with engine.connect() as conn:
-                        conn.execute(text("DELETE FROM juc_reports WHERE id = :id"), {"id": report_id_to_delete})
-                        conn.commit()
-                    st.success(f"Record ID {report_id_to_delete} deleted successfully.")
-                    st.rerun()
-        except Exception as e:
-            st.info("Loading administration tools...")
+    st.header("Administration & Résumé des Rapports")
+    
+    try:
+        # Chargement sécurisé des données depuis la base
+        if 'engine' in globals() and engine is not None:
+            df = pd.read_sql("SELECT * FROM juc_reports", engine)
+        else:
+            import sqlite3
+            conn = sqlite3.connect("juc_reports.db")
+            df = pd.read_sql("SELECT * FROM juc_reports", conn)
+            conn.close()
             
-        st.markdown("---")
-        if st.button("🗑️ DELETE ALL (Total Reset)"):
-            with engine.connect() as conn:
-                conn.execute(text("DELETE FROM juc_reports"))
-                conn.commit()
-            st.warning("Database completely cleared.")
-            st.rerun()
-    else:
-        st.error("Database engine is not configured.")
-
+        if df.empty:
+            st.warning("La base de données est actuellement vide. Aucun rapport n'a été soumis.")
+        else:
+            # Conversion de la date si elle existe
+            if "submission_date" in df.columns:
+                df["submission_date"] = pd.to_datetime(df["submission_date"])
+            
+            st.success(f"Nombre total de rapports enregistrés : {len(df)}")
+            
+            # --- 1. FILTRAGE PAR DATE DE SOUMISSION ---
+            st.subheader("📅 Trier et filtrer par date")
+            if "submission_date" in df.columns:
+                dates_uniques = sorted(df["submission_date"].dt.date.unique(), reverse=True)
+                date_selectionnee = st.selectbox("Choisir une date de soumission", options=dates_uniques)
+                df_filtre = df[df["submission_date"].dt.date == date_selectionnee]
+                st.markdown(f"**Affichage des rapports pour le : {date_selectionnee}**")
+            else:
+                df_filtre = df
+                
+            st.dataframe(df_filtre, use_container_width=True)
+            
+            # --- 2. TÉLÉCHARGEMENT DES DONNÉES ---
+            st.subheader("📥 Téléchargement")
+            csv_data = df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="Télécharger l'ensemble des rapports en CSV",
+                data=csv_data,
+                file_name="juc_rapports_complets.csv",
+                mime="text/csv"
+            )
+            
+            # --- 3. GRAPHIQUES DE RÉSUMÉ (FIGURES) ---
+            st.subheader("📊 Résumé visuel des rapports soumis")
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                if "category" in df.columns:
+                    st.markdown("**Répartition par Catégorie / Département**")
+                    cat_counts = df['category'].value_counts()
+                    st.bar_chart(cat_counts)
+                    
+            with col2:
+                if "report_type" in df.columns:
+                    st.markdown("**Répartition par Type de Rapport**")
+                    type_counts = df['report_type'].value_counts()
+                    st.bar_chart(type_counts)
+            
+            # --- 4. GESTION / SUPPRESSION ---
+            with st.expander("⚙️ Outils de maintenance (Suppression d'un rapport)"):
+                report_id_to_delete = st.number_input("Entrer l'ID du rapport à supprimer", min_value=0, step=1)
+                if st.button("Supprimer ce rapport"):
+                    if 'engine' in globals() and engine is not None:
+                        with engine.connect() as conn:
+                            conn.execute(text("DELETE FROM juc_reports WHERE id = :id"), {"id": report_id_to_delete})
+                            conn.commit()
+                    else:
+                        conn = sqlite3.connect("juc_reports.db")
+                        conn.execute("DELETE FROM juc_reports WHERE id = ?", (report_id_to_delete,))
+                        conn.commit()
+                        conn.close()
+                    st.success(f"Rapport ID {report_id_to_delete} supprimé.")
+                    st.rerun()
+                    
+    except Exception as e:
+        st.error(f"Erreur lors du chargement de la section Admin : {e}")
+        st.info("Vérifiez que la table 'juc_reports' existe bien dans votre base de données.")
 # --- 5. CAPACITY BUILDING PROGRAM (NGORORERO DISTRICT) ---
 elif menu == t["capacity"]:
     st.title("Capacity Building and Social Empowerment Program")
@@ -798,16 +891,16 @@ elif menu == t["capacity"]:
             * **Project Name:** Capacity Building and Social Empowerment Program for Vulnerable Women
             * **Location:** Ngororero District, Rwanda
             * **Start Date:** April 2026
-            * **Implementing Body:** Jesuit Urumuri Centre (JUC)
+            * **Implementing Body:** Jesuit Urumuri Centre (JUG)
             * **Total Approved Budget:** 82,870,000 RWF (53,433 €)
             """
         )
         st.info("Use the sidebar sub-options to switch between beneficiary management, financial tracking, and activity monitoring.")
 
-# --- 6. YOUTH INNOVATION & SOCIAL ENTREPRENEURSHIP (KIGALI - CEI) ---
+# --- 6. YOUTH INNOVATION & SOCIAL ENTREPRENEURSHIP (KIGALI) ---
 elif menu == t["youth_proj"]:
     st.title("Youth Innovation and Social Entrepreneurship Project")
-    st.subheader("City of Kigali Suburbs — 63-Month 7-Cohort Program (CEI Partnership)")
+    st.subheader("City of Kigali Suburbs — 36-Month 10-Cohort Program (CEI Partnership)")
     st.markdown("---")
 
     youth_nav = st.sidebar.radio(
@@ -822,14 +915,14 @@ elif menu == t["youth_proj"]:
 
     if youth_nav == "Beneficiaries & Cohorts":
         st.header("Youth Beneficiary Tracking & Cohort Management")
-        st.markdown("Register university and college graduate unemployed youth from Kigali suburbs across 7 cohorts (30 youth per cohort, 210 total)[cite: 3].")
+        st.markdown("Register university/college graduate youth from Kigali suburbs for upcoming training cohorts[cite: 1].")
 
         with st.form("youth_beneficiary_form"):
             col1, col2 = st.columns(2)
             with col1:
                 y_name = st.text_input("Full Name")
-                y_cohort = st.selectbox("Cohort Intake", [f"Cohort {i}" for i in range(1, 8)])
-                y_district = st.text_input("District / Suburb (Gasabo, etc.)")
+                y_cohort = st.selectbox("Cohort Intake", [f"Cohort {i}" for i in range(1, 11)])
+                y_district = st.text_input("District / Suburb (e.g., Gasabo, Kicukiro)")
             with col2:
                 y_idea = st.text_input("Business Idea Title")
                 y_phone = st.text_input("Phone Number")
@@ -862,11 +955,11 @@ elif menu == t["youth_proj"]:
             st.dataframe(st.session_state.youth_beneficiaries, use_container_width=True)
             st.metric(label="Total Registered Youth Trainees", value=len(st.session_state.youth_beneficiaries))
         else:
-            st.info("No youth beneficiaries registered yet. Target is 210 youth across 7 cohorts (30 per cohort)[cite: 3].")
+            st.info("No youth beneficiaries registered yet. Target is 400 youth across 10 cohorts (40 per cohort)[cite: 1].")
 
     elif youth_nav == "Financial & General Budget":
         st.header("Financial Breakdown & Budget Tracking")
-        st.markdown("Tracking general budget allocations (CEI Contribution & Local Contribution) totaling **160,950,000 RWF (€95,803)**[cite: 3].")
+        st.markdown("Tracking general budget allocations (CEI Contribution & Local Contribution) totaling **140,300,000 RWF (€118,898)**[cite: 1].")
 
         st.subheader("Budget Allocation vs. Actual Spending (RWF)")
         df_yb = st.session_state.youth_budget
@@ -896,8 +989,8 @@ elif menu == t["youth_proj"]:
         col3.metric("Utilization Rate", f"{(tot_spent / tot_alloc * 100):.2f}%" if tot_alloc > 0 else "0%")
 
     elif youth_nav == "Action Learning & Activities":
-        st.header("Action Learning & Incubation Schedule (63 Months)")
-        st.markdown("Track the progress of recruitment, the 5 training modules, and 6-month incubations across 7 cohorts[cite: 3].")
+        st.header("Action Learning & Incubation Schedule")
+        st.markdown("Track the progress of recruitment, the 5 training modules, and 6-month incubations[cite: 1].")
 
         st.dataframe(st.session_state.youth_activities, use_container_width=True)
 
@@ -919,13 +1012,196 @@ elif menu == t["youth_proj"]:
         st.header("Project Proposal Summary (CEI Partnership)")
         st.markdown(
             """
-            * **Project Title:** Youth Innovation and Social Entrepreneurship[cite: 3]
-            * **Implementing Body:** Jesuit Urumuri Centre (JUC), Kigali, Gasabo District[cite: 3]
-            * **Partner:** Committee for Third World Initiatives of the Italian Catholic Bishop's Conference (CEI)[cite: 3]
-            * **Target Beneficiaries:** 210 University and college graduates unemployed youth in Kigali suburbs (7 cohorts of 30 youth each)[cite: 3].
-            * **Lifespan:** 63 Months (5 Years 3 Months), starting 2027[cite: 3].
-            * **Total Budget:** 160,950,000 RWF (€95,803 at 1 € = 1,680 FRW)[cite: 3].
-            * **Core Pillars:** Recruitment & Selection, Action Learning (Self-Discovery, Self-Realization/Prototyping, Marketing, Operations & Finance, Strategic Planning), and 6-Month Project Incubation[cite: 3].
+            * **Project Title:** Youth Innovation and Social Entrepreneurship[cite: 1]
+            * **Implementing Body:** Jesuit Urumuri Centre (JUC), Kigali, Gasabo District[cite: 1]
+            * **Partner:** Conferenza Episcopale Italiana (CEI)[cite: 1]
+            * **Target Beneficiaries:** 400 unemployed university and college graduates in Kigali suburbs (10 cohorts of 40 youth each)[cite: 1].
+            * **Lifespan:** 36 Months (3 Years)[cite: 1]
+            * **Total Budget:** 140,300,000 RWF (€118,898)[cite: 1]
+            * **Core Pillars:** Recruitment & Selection, Action Learning (5 Training Modules), and 6-Month Project Incubation[cite: 1].
             """
         )
         st.info("Use the sidebar sub-options to manage youth innovator cohorts, expenses, and action learning modules.")
+# --- ADMIN SECTION: MODIFY EXISTING ENTRIES ---
+st.divider()
+st.subheader("✏️ Admin: Modify Records in Neon Database")
+
+try:
+    # 1. Connect to Neon using your app's secret configuration (or replace with your connection string)
+    # Most Streamlit apps using Neon store this in st.secrets["DATABASE_URL"]
+    engine = create_engine(st.secrets["DATABASE_URL"]) 
+    
+    # 2. Discover available tables in your Neon database
+    with engine.connect() as conn:
+        tables_result = conn.execute(text("SELECT table_name FROM information_schema.tables WHERE table_schema='public';")).fetchall()
+    
+    table_names = [t[0] for t in tables_result]
+    
+    if not table_names:
+        st.info("No tables found in your Neon database yet.")
+    else:
+        # Let you choose which table to manage if you have multiple
+        target_table = st.selectbox("Select table to edit:", table_names, key="neon_table_select")
+        
+        # Load records from Neon into a DataFrame
+        df_admin = pd.read_sql(f"SELECT * FROM {target_table}", con=engine)
+        
+        if df_admin.empty:
+            st.info(f"The table '{target_table}' is currently empty.")
+        else:
+            # Dynamically handle column names
+            columns = df_admin.columns.tolist()
+            id_col = columns[0]   # Primary key / ID column
+            name_col = columns[1] if len(columns) > 1 else columns[0]
+            
+            # Create a clean label for the select dropdown
+            df_admin["Display_Label"] = df_admin[id_col].astype(str) + " - " + df_admin[name_col].astype(str)
+            
+            selected_label = st.selectbox(
+                "Select a record to modify:", 
+                df_admin["Display_Label"].tolist(),
+                key="neon_modify_selectbox"
+            )
+            
+            selected_id = selected_label.split(" - ")[0]
+            
+            # Get the exact row data
+            record_row = df_admin[df_admin[id_col].astype(str) == selected_id].iloc[0]
+            
+            # 3. Modification Form pre-filled with data from Neon
+            with st.form(key=f"neon_edit_form_{selected_id}"):
+                st.write(f"Modifying record ID: **{selected_id}**")
+                
+                updated_values = {}
+                for col in columns:
+                    if col != id_col:
+                        # Handle potential null/None values safely
+                        val = "" if pd.isna(record_row[col]) else str(record_row[col])
+                        updated_values[col] = st.text_input(col, value=val)
+                
+                save_updates = st.form_submit_button("Save Changes to Neon DB")
+                
+                if save_updates:
+                    # 4. Build and execute PostgreSQL UPDATE query
+                    set_clause = ", ".join([f'"{col}" = :{col}' for col in updated_values.keys()])
+                    update_query = text(f'UPDATE "{target_table}" SET {set_clause} WHERE "{id_col}" = :id_val')
+                    
+                    params = {**updated_values, "id_val": selected_id}
+                    
+                    with engine.begin() as conn:
+                        conn.execute(update_query, params)
+                    
+                    st.success("Record successfully updated in Neon database for all users!")
+                    st.rerun()
+
+except Exception as e:
+    st.error(f"Error connecting to Neon database: {e}")
+    st.info("Check if your `DATABASE_URL` is correctly configured in your Streamlit secrets or connection variables.")
+import streamlit as st
+import pandas as pd
+from sqlalchemy import text
+
+import streamlit as st
+import pandas as pd
+from sqlalchemy import text
+
+# Connect to Neon Postgres via Streamlit st.connection
+conn = st.connection("neon", type="sql")
+
+st.title("JUC M&E Portal: Youth Innovation & Social Entrepreneurship")
+st.markdown("**Live Monitoring & Evaluation Dashboard for the 63-Month CEI-Funded Project**[cite: 1]")
+
+# Sidebar navigation
+menu = st.sidebar.selectbox("Navigation", ["Project Overview", "Planned Cohorts & Timeline", "Budget Tracking", "Database Manager (Neon)"])
+
+if menu == "Project Overview":
+    st.subheader("Core Project Metadata")
+    st.info("Project Title: Youth Innovation and Social Entrepreneurship[cite: 1]")
+    
+    # Try fetching live metrics from Neon, fallback to defaults if table is empty
+    try:
+        df_meta = conn.query("SELECT * FROM juc_projects ORDER BY id DESC LIMIT 1;", ttl="0s")
+        if not df_meta.empty:
+            total_beneficiaries = f"{df_meta.iloc[0]['total_beneficiaries']} Youth"
+            lifespan = f"{df_meta.iloc[0]['lifespan_months']} Months"
+            total_budget = f"{df_meta.iloc[0]['total_cost_frw']:,.2f} FRW"
+        else:
+            total_beneficiaries, lifespan, total_budget = "210 Youth", "63 Months", "160,950,000.00 FRW"
+    except Exception:
+        total_beneficiaries, lifespan, total_budget = "210 Youth", "63 Months", "160,950,000.00 FRW"
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Total Lifespan", lifespan, "5 Years 3 Months")
+    col2.metric("Target Beneficiaries", total_beneficiaries, "7 Cohorts (30 per cohort)[cite: 1]")
+    col3.metric("Total Budget", total_budget, "€95,803")
+
+    st.markdown("""
+    **Core Phases per Cohort:**
+    * **Recruitment (Months 1–3):** Candidate identification via local administrative databases and business idea competitions[cite: 1].
+    * **Action Learning Training (Months 1–3):** 5 modules covering Self-Discovery, Prototyping, Marketing, Financial Management, and Strategic Planning[cite: 1].
+    * **Incubation & Support (Months 4–9):** Co-working spaces, coaching, networking, and monthly monitoring[cite: 1].
+    """)
+
+elif menu == "Planned Cohorts & Timeline":
+    st.subheader("7-Cohort Implementation Timeline (2027–2032)")
+    
+    timeline_data = [
+        {"Cohort": 1, "Start Year": 2027, "Active Span": "Months 1 - 9", "Status": "Planned"},
+        {"Cohort": 2, "Start Year": 2028, "Active Span": "Months 10 - 18", "Status": "Planned"},
+        {"Cohort": 3, "Start Year": 2029, "Active Span": "Months 19 - 27", "Status": "Planned"},
+        {"Cohort": 4, "Start Year": 2030, "Active Span": "Months 28 - 36", "Status": "Planned"},
+        {"Cohort": 5, "Start Year": 2031, "Active Span": "Months 37 - 45", "Status": "Planned"},
+        {"Cohort": 6, "Start Year": 2032, "Active Span": "Months 46 - 54", "Status": "Planned"},
+        {"Cohort": 7, "Start Year": 2032, "Active Span": "Months 55 - 63", "Status": "Planned"},
+    ]
+    st.table(pd.DataFrame(timeline_data))
+
+elif menu == "Budget Tracking":
+    st.subheader("Project Financial Allocation Breakdown")
+    
+    budget_data = [
+        {"Category": "1. Recruitment & Selection", "CEI (FRW)": 490000, "Local (FRW)": 0, "Total (FRW)": 490000},
+        {"Category": "2. Trainings & Innovation", "CEI (FRW)": 114800000, "Local (FRW)": 1000000, "Total (FRW)": 115800000},
+        {"Category": "3. Incubation & Support", "CEI (FRW)": 37800000, "Local (FRW)": 6860000, "Total (FRW)": 44660000},
+        {"Category": "General Total", "CEI (FRW)": 152600000, "Local (FRW)": 8350000, "Total (FRW)": 160950000}
+    ]
+    df_budget = pd.DataFrame(budget_data)
+    st.dataframe(df_budget, use_container_width=True)
+
+elif menu == "Database Manager (Neon)":
+    st.subheader("Neon Postgres Database Integration")
+    st.write("Manage and write active project entries directly to your Neon database instance.")
+    
+    if st.button("Seed JUC Project into Neon Database"):
+        try:
+            with conn.session as session:
+                session.execute(
+                    text("""
+                        INSERT INTO juc_projects (project_title, implementing_agency, total_beneficiaries, lifespan_months, start_year, total_cost_frw, total_cost_eur)
+                        VALUES (:title, :agency, :beneficiaries, :lifespan, :start_year, :cost_frw, :cost_eur)
+                    """),
+                    {
+                        "title": "Youth Innovation and Social Entrepreneurship",
+                        "agency": "Jesuit Urumuri Centre (JUC)[cite: 1]",
+                        "beneficiaries": 210,
+                        "lifespan": 63,
+                        "start_year": 2027,
+                        "cost_frw": 160950000.00,
+                        "cost_eur": 95803.00
+                    }
+                )
+                session.commit()
+            st.success("Successfully seeded project baseline data into Neon Postgres!")
+            st.rerun()
+        except Exception as e:
+            st.error(f"Database insertion error (Ensure SQL tables are created first): {e}")
+
+    st.markdown("### Live Records in Neon Database")
+    try:
+        df_projects = conn.query("SELECT * FROM juc_projects;", ttl="0s")
+        if not df_projects.empty:
+            st.dataframe(df_projects, use_container_width=True)
+        else:
+            st.warning("The `juc_projects` table is currently empty. Click the button above to seed data.")
+    except Exception as e:
+        st.error(f"Could not load table. Please make sure you ran the SQL schema in Neon. Details: {e}")
