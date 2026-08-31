@@ -1,13 +1,4 @@
-import streamlit as st
-
-# Force mobile scaling and responsive viewport
-st.markdown(
-    """
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    """,
-    unsafe_allow_html=True
-)
-import base64
+[source: 4]import base64
 from datetime import date, datetime
 import io
 import os
@@ -15,26 +6,11 @@ import pandas as pd
 from docx import Document
 from sqlalchemy import create_engine, text
 import streamlit as st
-st.markdown(
-    """
-    <meta name="google-site-verification" content="IGderbV-0e_PYIBMeJiRT3uKUtH4Njbq0T7JmWt_OA" />
-    <style>
-    img, table, div, span {
-        max-width: 100% !important;
-        box-sizing: border-box;
-    }
-    body {
-        overflow-x: hidden;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
 # --- CONFIGURATION ---
 st.set_page_config(
-    page_title="JUC M&E Portal - Jesuit Urumuri Centre",
-    page_icon="background.jpg",
+    page_title="JUC Portal - Multi-Project Management",
+    page_icon="📊",
     layout="wide",
 )
 
@@ -126,31 +102,7 @@ if "lang" not in st.session_state: st.session_state.lang = "English"
 if "authenticated" not in st.session_state: st.session_state.authenticated = False
 
 trans = get_translations()
-
-import os
-from sqlalchemy import create_engine
-import streamlit as st
-
-# Use Render's environment variable directly without triggering st.secrets error
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-if not DATABASE_URL:
-    st.error("DATABASE_URL is missing! Please configure it in your Render Environment variables.")
-    engine = None
-else:
-    engine = create_engine(DATABASE_URL)
-
-if not DATABASE_URL:
-    try:
-        DATABASE_URL = st.secrets["DATABASE_URL"]
-    except Exception:
-        DATABASE_URL = None
-
-# Initialize the database engine safely
-if DATABASE_URL:
-    engine = create_engine(DATABASE_URL)
-else:
-    st.error("DATABASE_URL is missing! Please configure it in your Render Environment variables.")
+engine = create_engine(st.secrets["DATABASE_URL"]) if "DATABASE_URL" in st.secrets else None
 
 # --- INITIALIZE SESSION STATE: NGORORERO PROGRAM ---
 if "beneficiaries" not in st.session_state:
@@ -291,69 +243,56 @@ if st.sidebar.button("Sign Out"):
 
 bg_css = f"url('data:image/jpeg;base64,{st.session_state.bg_base64}')" if st.session_state.bg_base64 else "none"
 
-# ... (ton code précédent)
-
-# Application du nouveau style
 st.markdown(f"""
     <style>
-    /* 1. Fond fixe (Image floue et assombrie) */
-    .stApp {{ background: none !important; }}
-    .stApp::before {{
-        content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background-image: {bg_css} !important; background-size: cover !important;
-        background-position: center !important; filter: blur(8px); z-index: -2;
+    .stApp {{
+        background-image: {bg_css} !important;
+        background-size: cover !important;
+        background-position: center center !important;
+        background-repeat: no-repeat !important;
+        background-attachment: fixed !important;
     }}
-    .stApp::after {{
-        content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background-color: rgba(0, 0, 0, 0.7); z-index: -1;
+    .main .block-container {{
+        background: rgba(255, 255, 255, 0.93);
+        padding: 2.5rem;
+        border-radius: 15px;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     }}
-
-    /* 2. Texte global par défaut (pour le fond sombre) */
-    div, p, h1, h2, h3, h4, span, label, li {{
-        color: #ffffff !important;
-        text-shadow: 1px 1px 2px rgba(0,0,0,1);
+    div[data-testid="stForm"] {{
+        background: rgba(255, 255, 258, 0.98) !important;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(226, 232, 240, 1);
     }}
-
-    /* 3. Texte noir foncé dans les espaces blancs - CIBLAGE AGRESSIF */
-    .main .block-container input, 
-    .main .block-container textarea,
-    .main .block-container div[role="combobox"],
-    .main .block-container div[data-baseweb="select"],
-    .main .block-container div[data-baseweb="base-input"] > div,
-    .main .block-container div[data-baseweb="textarea"] > textarea {{
-        color: #000000 !important; 
-        font-weight: 700 !important; 
-        background-color: #ffffff !important;
-        -webkit-text-fill-color: #000000 !important; /* Force le remplissage du texte */
+    .bubble-card {{
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border: 2px solid #cbd5e1;
+        border-radius: 20px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
     }}
-    
-    /* Ciblage spécifique du placeholder */
-    .main .block-container input::placeholder, 
-    .main .block-container textarea::placeholder {{
-        color: #333333 !important;
-        opacity: 1 !important;
+    .bubble-admin {{
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        border: 2px solid #3b82f6;
+        border-radius: 25px;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.15);
+        margin-bottom: 25px;
     }}
-
-    /* Labels au-dessus des champs blancs */
-    .main .block-container label {{
-        color: #000000 !important;
-        text-shadow: none !important;
-        font-weight: bold !important;
-    }}
-
-    /* 4. Sidebar en bleu clair */
-    [data-testid="stSidebar"] {{ background-color: #f0f9ff !important; }}
-    [data-testid="stSidebar"] div, [data-testid="stSidebar"] p, [data-testid="stSidebar"] span {{
-        color: #0369a1 !important;
-        text-shadow: none !important;
-        font-weight: 600 !important;
+    h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown {{
+        color: #0f172a !important;
     }}
     </style>
 """, unsafe_allow_html=True)
-# ... (le reste de ton code)
 
 # --- NAVIGATION ---
-menu = st.sidebar.radio("Navigation", [t["weekly"], t["strat"], t["dash"], t["admin"], t["capacity"], t["youth_proj"]])
+menu = st.sidebar.radio(t["title"], [t["weekly"], t["strat"], t["dash"], t["admin"], t["capacity"], t["youth_proj"]])
+
 # --- 1. WEEKLY REPORT ---
 if menu == t["weekly"]:
     st.header(t["weekly"])
@@ -369,7 +308,7 @@ if menu == t["weekly"]:
         dept = st.selectbox(t["dept"], ["Administration", "Finance", "Program management", "Project office", "Communication office", "Front Desk", "Monitoring and Evaluation"])
         
         completed_activities = st.text_area("Activities completed for the week ending on Friday")
-        pending_issues = st.text_area("Plan of next week activities")
+        pending_issues = st.text_area("Projection of pending issues to be completed or initiated next week")
         challenges = st.text_area("Challenges Encountered")
         
         doc = st.file_uploader("Upload supporting document", type=['pdf', 'jpg', 'png', 'docx'])
@@ -670,84 +609,35 @@ elif menu == t["dash"]:
 
 # --- 4. ADMIN ---
 elif menu == t["admin"]:
-    st.header("Administration & Résumé des Rapports")
-    
-    try:
-        # Chargement sécurisé des données depuis la base
-        if 'engine' in globals() and engine is not None:
-            df = pd.read_sql("SELECT * FROM juc_reports", engine)
-        else:
-            import sqlite3
-            conn = sqlite3.connect("juc_reports.db")
-            df = pd.read_sql("SELECT * FROM juc_reports", conn)
-            conn.close()
-            
-        if df.empty:
-            st.warning("La base de données est actuellement vide. Aucun rapport n'a été soumis.")
-        else:
-            # Conversion de la date si elle existe
-            if "submission_date" in df.columns:
-                df["submission_date"] = pd.to_datetime(df["submission_date"])
-            
-            st.success(f"Nombre total de rapports enregistrés : {len(df)}")
-            
-            # --- 1. FILTRAGE PAR DATE DE SOUMISSION ---
-            st.subheader("📅 Trier et filtrer par date")
-            if "submission_date" in df.columns:
-                dates_uniques = sorted(df["submission_date"].dt.date.unique(), reverse=True)
-                date_selectionnee = st.selectbox("Choisir une date de soumission", options=dates_uniques)
-                df_filtre = df[df["submission_date"].dt.date == date_selectionnee]
-                st.markdown(f"**Affichage des rapports pour le : {date_selectionnee}**")
+    st.header(t["admin"])
+    if engine:
+        try:
+            df = pd.read_sql("SELECT id, submission_date, staff_name, report_type, category, completed_activities, pending_issues, challenges FROM juc_reports ORDER BY submission_date DESC", engine)
+            if df.empty:
+                st.info("The database is currently empty.")
             else:
-                df_filtre = df
+                st.dataframe(df, use_container_width=True)
                 
-            st.dataframe(df_filtre, use_container_width=True)
-            
-            # --- 2. TÉLÉCHARGEMENT DES DONNÉES ---
-            st.subheader("📥 Téléchargement")
-            csv_data = df.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="Télécharger l'ensemble des rapports en CSV",
-                data=csv_data,
-                file_name="juc_rapports_complets.csv",
-                mime="text/csv"
-            )
-            
-            # --- 3. GRAPHIQUES DE RÉSUMÉ (FIGURES) ---
-            st.subheader("📊 Résumé visuel des rapports soumis")
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                if "category" in df.columns:
-                    st.markdown("**Répartition par Catégorie / Département**")
-                    cat_counts = df['category'].value_counts()
-                    st.bar_chart(cat_counts)
-                    
-            with col2:
-                if "report_type" in df.columns:
-                    st.markdown("**Répartition par Type de Rapport**")
-                    type_counts = df['report_type'].value_counts()
-                    st.bar_chart(type_counts)
-            
-            # --- 4. GESTION / SUPPRESSION ---
-            with st.expander("⚙️ Outils de maintenance (Suppression d'un rapport)"):
-                report_id_to_delete = st.number_input("Entrer l'ID du rapport à supprimer", min_value=0, step=1)
-                if st.button("Supprimer ce rapport"):
-                    if 'engine' in globals() and engine is not None:
-                        with engine.connect() as conn:
-                            conn.execute(text("DELETE FROM juc_reports WHERE id = :id"), {"id": report_id_to_delete})
-                            conn.commit()
-                    else:
-                        conn = sqlite3.connect("juc_reports.db")
-                        conn.execute("DELETE FROM juc_reports WHERE id = ?", (report_id_to_delete,))
+                st.subheader("Delete a specific record by ID")
+                report_id_to_delete = st.number_input("Enter ID to delete", min_value=0, step=1)
+                
+                if st.button("Delete Selected Row"):
+                    with engine.connect() as conn:
+                        conn.execute(text("DELETE FROM juc_reports WHERE id = :id"), {"id": report_id_to_delete})
                         conn.commit()
-                        conn.close()
-                    st.success(f"Rapport ID {report_id_to_delete} supprimé.")
+                    st.success(f"Record ID {report_id_to_delete} deleted successfully.")
                     st.rerun()
-                    
-    except Exception as e:
-        st.error(f"Erreur lors du chargement de la section Admin : {e}")
-        st.info("Vérifiez que la table 'juc_reports' existe bien dans votre base de données.")
+        except Exception as e:
+            st.info("Loading administration tools...")
+            
+        st.markdown("---")
+        if st.button("🗑️ DELETE ALL (Total Reset)"):
+            with engine.connect() as conn:
+                conn.execute(text("DELETE FROM juc_reports"))
+                conn.commit()
+            st.warning("Database completely cleared.")
+            st.rerun()
+
 # --- 5. CAPACITY BUILDING PROGRAM (NGORORERO DISTRICT) ---
 elif menu == t["capacity"]:
     st.title("Capacity Building and Social Empowerment Program")
@@ -1022,186 +912,3 @@ elif menu == t["youth_proj"]:
             """
         )
         st.info("Use the sidebar sub-options to manage youth innovator cohorts, expenses, and action learning modules.")
-# --- ADMIN SECTION: MODIFY EXISTING ENTRIES ---
-st.divider()
-st.subheader("✏️ Admin: Modify Records in Neon Database")
-
-try:
-    # 1. Connect to Neon using your app's secret configuration (or replace with your connection string)
-    # Most Streamlit apps using Neon store this in st.secrets["DATABASE_URL"]
-    engine = create_engine(st.secrets["DATABASE_URL"]) 
-    
-    # 2. Discover available tables in your Neon database
-    with engine.connect() as conn:
-        tables_result = conn.execute(text("SELECT table_name FROM information_schema.tables WHERE table_schema='public';")).fetchall()
-    
-    table_names = [t[0] for t in tables_result]
-    
-    if not table_names:
-        st.info("No tables found in your Neon database yet.")
-    else:
-        # Let you choose which table to manage if you have multiple
-        target_table = st.selectbox("Select table to edit:", table_names, key="neon_table_select")
-        
-        # Load records from Neon into a DataFrame
-        df_admin = pd.read_sql(f"SELECT * FROM {target_table}", con=engine)
-        
-        if df_admin.empty:
-            st.info(f"The table '{target_table}' is currently empty.")
-        else:
-            # Dynamically handle column names
-            columns = df_admin.columns.tolist()
-            id_col = columns[0]   # Primary key / ID column
-            name_col = columns[1] if len(columns) > 1 else columns[0]
-            
-            # Create a clean label for the select dropdown
-            df_admin["Display_Label"] = df_admin[id_col].astype(str) + " - " + df_admin[name_col].astype(str)
-            
-            selected_label = st.selectbox(
-                "Select a record to modify:", 
-                df_admin["Display_Label"].tolist(),
-                key="neon_modify_selectbox"
-            )
-            
-            selected_id = selected_label.split(" - ")[0]
-            
-            # Get the exact row data
-            record_row = df_admin[df_admin[id_col].astype(str) == selected_id].iloc[0]
-            
-            # 3. Modification Form pre-filled with data from Neon
-            with st.form(key=f"neon_edit_form_{selected_id}"):
-                st.write(f"Modifying record ID: **{selected_id}**")
-                
-                updated_values = {}
-                for col in columns:
-                    if col != id_col:
-                        # Handle potential null/None values safely
-                        val = "" if pd.isna(record_row[col]) else str(record_row[col])
-                        updated_values[col] = st.text_input(col, value=val)
-                
-                save_updates = st.form_submit_button("Save Changes to Neon DB")
-                
-                if save_updates:
-                    # 4. Build and execute PostgreSQL UPDATE query
-                    set_clause = ", ".join([f'"{col}" = :{col}' for col in updated_values.keys()])
-                    update_query = text(f'UPDATE "{target_table}" SET {set_clause} WHERE "{id_col}" = :id_val')
-                    
-                    params = {**updated_values, "id_val": selected_id}
-                    
-                    with engine.begin() as conn:
-                        conn.execute(update_query, params)
-                    
-                    st.success("Record successfully updated in Neon database for all users!")
-                    st.rerun()
-
-except Exception as e:
-    st.error(f"Error connecting to Neon database: {e}")
-    st.info("Check if your `DATABASE_URL` is correctly configured in your Streamlit secrets or connection variables.")
-import streamlit as st
-import pandas as pd
-from sqlalchemy import text
-
-import streamlit as st
-import pandas as pd
-from sqlalchemy import text
-
-# Connect to Neon Postgres via Streamlit st.connection
-conn = st.connection("neon", type="sql")
-
-st.title("JUC M&E Portal: Youth Innovation & Social Entrepreneurship")
-st.markdown("**Live Monitoring & Evaluation Dashboard for the 63-Month CEI-Funded Project**[cite: 1]")
-
-# Sidebar navigation
-menu = st.sidebar.selectbox("Navigation", ["Project Overview", "Planned Cohorts & Timeline", "Budget Tracking", "Database Manager (Neon)"])
-
-if menu == "Project Overview":
-    st.subheader("Core Project Metadata")
-    st.info("Project Title: Youth Innovation and Social Entrepreneurship[cite: 1]")
-    
-    # Try fetching live metrics from Neon, fallback to defaults if table is empty
-    try:
-        df_meta = conn.query("SELECT * FROM juc_projects ORDER BY id DESC LIMIT 1;", ttl="0s")
-        if not df_meta.empty:
-            total_beneficiaries = f"{df_meta.iloc[0]['total_beneficiaries']} Youth"
-            lifespan = f"{df_meta.iloc[0]['lifespan_months']} Months"
-            total_budget = f"{df_meta.iloc[0]['total_cost_frw']:,.2f} FRW"
-        else:
-            total_beneficiaries, lifespan, total_budget = "210 Youth", "63 Months", "160,950,000.00 FRW"
-    except Exception:
-        total_beneficiaries, lifespan, total_budget = "210 Youth", "63 Months", "160,950,000.00 FRW"
-
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Total Lifespan", lifespan, "5 Years 3 Months")
-    col2.metric("Target Beneficiaries", total_beneficiaries, "7 Cohorts (30 per cohort)[cite: 1]")
-    col3.metric("Total Budget", total_budget, "€95,803")
-
-    st.markdown("""
-    **Core Phases per Cohort:**
-    * **Recruitment (Months 1–3):** Candidate identification via local administrative databases and business idea competitions[cite: 1].
-    * **Action Learning Training (Months 1–3):** 5 modules covering Self-Discovery, Prototyping, Marketing, Financial Management, and Strategic Planning[cite: 1].
-    * **Incubation & Support (Months 4–9):** Co-working spaces, coaching, networking, and monthly monitoring[cite: 1].
-    """)
-
-elif menu == "Planned Cohorts & Timeline":
-    st.subheader("7-Cohort Implementation Timeline (2027–2032)")
-    
-    timeline_data = [
-        {"Cohort": 1, "Start Year": 2027, "Active Span": "Months 1 - 9", "Status": "Planned"},
-        {"Cohort": 2, "Start Year": 2028, "Active Span": "Months 10 - 18", "Status": "Planned"},
-        {"Cohort": 3, "Start Year": 2029, "Active Span": "Months 19 - 27", "Status": "Planned"},
-        {"Cohort": 4, "Start Year": 2030, "Active Span": "Months 28 - 36", "Status": "Planned"},
-        {"Cohort": 5, "Start Year": 2031, "Active Span": "Months 37 - 45", "Status": "Planned"},
-        {"Cohort": 6, "Start Year": 2032, "Active Span": "Months 46 - 54", "Status": "Planned"},
-        {"Cohort": 7, "Start Year": 2032, "Active Span": "Months 55 - 63", "Status": "Planned"},
-    ]
-    st.table(pd.DataFrame(timeline_data))
-
-elif menu == "Budget Tracking":
-    st.subheader("Project Financial Allocation Breakdown")
-    
-    budget_data = [
-        {"Category": "1. Recruitment & Selection", "CEI (FRW)": 490000, "Local (FRW)": 0, "Total (FRW)": 490000},
-        {"Category": "2. Trainings & Innovation", "CEI (FRW)": 114800000, "Local (FRW)": 1000000, "Total (FRW)": 115800000},
-        {"Category": "3. Incubation & Support", "CEI (FRW)": 37800000, "Local (FRW)": 6860000, "Total (FRW)": 44660000},
-        {"Category": "General Total", "CEI (FRW)": 152600000, "Local (FRW)": 8350000, "Total (FRW)": 160950000}
-    ]
-    df_budget = pd.DataFrame(budget_data)
-    st.dataframe(df_budget, use_container_width=True)
-
-elif menu == "Database Manager (Neon)":
-    st.subheader("Neon Postgres Database Integration")
-    st.write("Manage and write active project entries directly to your Neon database instance.")
-    
-    if st.button("Seed JUC Project into Neon Database"):
-        try:
-            with conn.session as session:
-                session.execute(
-                    text("""
-                        INSERT INTO juc_projects (project_title, implementing_agency, total_beneficiaries, lifespan_months, start_year, total_cost_frw, total_cost_eur)
-                        VALUES (:title, :agency, :beneficiaries, :lifespan, :start_year, :cost_frw, :cost_eur)
-                    """),
-                    {
-                        "title": "Youth Innovation and Social Entrepreneurship",
-                        "agency": "Jesuit Urumuri Centre (JUC)[cite: 1]",
-                        "beneficiaries": 210,
-                        "lifespan": 63,
-                        "start_year": 2027,
-                        "cost_frw": 160950000.00,
-                        "cost_eur": 95803.00
-                    }
-                )
-                session.commit()
-            st.success("Successfully seeded project baseline data into Neon Postgres!")
-            st.rerun()
-        except Exception as e:
-            st.error(f"Database insertion error (Ensure SQL tables are created first): {e}")
-
-    st.markdown("### Live Records in Neon Database")
-    try:
-        df_projects = conn.query("SELECT * FROM juc_projects;", ttl="0s")
-        if not df_projects.empty:
-            st.dataframe(df_projects, use_container_width=True)
-        else:
-            st.warning("The `juc_projects` table is currently empty. Click the button above to seed data.")
-    except Exception as e:
-        st.error(f"Could not load table. Please make sure you ran the SQL schema in Neon. Details: {e}")
